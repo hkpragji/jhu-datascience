@@ -1,0 +1,431 @@
+\documentclass[10pt,a4paper,twoside]{article}
+\usepackage[numbers]{natbib}
+\usepackage{url}
+\usepackage{caption}
+\usepackage{notoccite}
+\usepackage{enumitem}
+\usepackage[margin=0.5in]{geometry}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{parskip}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{bm}
+\usepackage{dsfont}
+\usepackage{bigints}
+\usepackage[nointlimits]{esint}
+\usepackage{titlesec}
+\titleformat*{\section}{\normalsize \bfseries}
+\titleformat*{\subsection}{\normalsize \bfseries}
+\titlespacing\section{0pt}{10pt}{10pt}
+\titlespacing\subsection{0pt}{10pt}{10pt}
+\titlespacing\subsubsection{0pt}{10pt}{10pt}
+\graphicspath{ {images/} }
+
+\title{\Large \textbf{R Programming \\ 
+                      \large Module 1: Basics of R Programming}}
+\author{\large \textbf{Johns Hopkins University}}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Introduction}
+
+In this course, we will:
+
+\begin{itemize}
+  \item Learn how to program in R;
+  \item Learn how to use R for effective data analysis;
+  \item Learn how to install and configure software necessary for a statistical programming environment;
+  \item Discuss generic programming language concepts as they are implemented in a high-level statistical language;
+  \item Cover practical issues in statistical computing, including:
+    \begin{itemize}
+      \item Reading data into R
+      \item Accessing R packages
+      \item Writing R functions
+      \item Debugging
+      \item Organising and commenting R code.
+    \end{itemize}
+\end{itemize}
+
+\section{Data Types}
+
+\subsection{Objects and attributes}
+
+\subsubsection{Objects}
+
+\begin{itemize}
+  \item R has five atomic (basic) classes of objects:
+    \begin{enumerate}
+      \item Character
+      \item Numeric
+      \item Integer
+      \item Complex
+      \item Logical
+    \end{enumerate}
+\end{itemize}
+
+\begin{itemize}
+  \item The most basic object is a \textbf{vector}. A vector can only contain objects of the same class. One exception to this is a \textbf{list}, which is represented as a vector but can contain objects of different classes.
+\end{itemize}
+
+\begin{itemize}
+  \item Empty vectors can be created using the \textbf{vector()} function.
+\end{itemize}
+
+\subsubsection{Numbers}
+
+\begin{itemize}
+  \item Numbers in R are generally treated as numeric objects - double precision real numbers;
+  \item If you explicitly want an integer, you need to specify the L suffix;
+  \item Example: Entering 1 gives you a numeric object; entering 1L explicitly gives you an integer;
+  \item There is also a special number Inf which represents infinity; e.g., 1/0. Inf can be used in ordinary calculations, e.g., 1/Inf is 0;
+  \item The value NaN represents an undefined value (``not a number''); e.g., 0/0. NaN can also be thought of as a missing value.
+\end{itemize}
+
+\subsubsection{Attributes}
+
+\begin{itemize}
+  \item Every object in R can also have \textbf{attributes}, which we can think of as as named list of arbitrary metadata;
+  \item Two attributes are particularly important: (1) the \textbf{dimension} attribute, which turns vectors into matrices and arrays, (2) the \textbf{class} attribute, which powers the S3 object system - this includes important vectors such as factors, date and times, data frames, and tibbles;
+  \item Other attributes include: names and dimnames, length, and other user-defined attributes/metadata;
+  \item Attributes of an object can be accessed using the \textbf{attributes()} function.
+\end{itemize}
+
+\subsection{Vectors and lists}
+
+\subsubsection{Creating vectors}
+
+The c() function can be used to create vectors of objects:
+
+<<>>=
+a <- c(0.5, 0.6)
+a
+class(a) # Numeric
+
+b <- c(TRUE, FALSE)
+b
+class(b) # Logical
+
+c <- c(T, F)
+c
+class(c) # Logical
+
+d <- c("a", "b", "c", "d")
+d
+class(d) # Character
+
+e <- c(9:29)
+e
+class(e) # Integer
+
+f <- c(1 + 0i, 2 + 4i)
+f
+class(f) # Complex
+@
+
+We can also use the vector() function to create vectors:
+
+<<>>=
+x <- vector("numeric", length = 10) # Two arguments: mode (class) and length.
+x
+@
+
+\subsubsection{Mixing objects}
+
+What would happen if we create the following vectors?
+
+<<>>=
+y1 <- c(1.7, "a")
+y1
+class(y1)
+
+y2 <- c(TRUE, 2)
+y2
+class(y2)
+
+y3 <- c("a", TRUE)
+y3
+class(y3)
+@
+
+When objects of different classes are mixed in a vector, \textbf{coercion} occurs so that every element in the vector is of the \textbf{same} class.
+
+\subsubsection{Explicit coercion}
+
+Objects can be explicitly coerced from one class to another usin the as.* functions:
+
+<<>>=
+x <- 0:6
+class(x)
+as.numeric(x)
+as.logical(x)
+as.character(x)
+@
+
+Nonsensical coercion results in NA values:
+
+<<>>=
+x <- c("a", "b", "c")
+as.numeric(x)
+as.logical(x)
+as.complex(x)
+@
+
+\subsubsection{Lists}
+
+Lists are a special type of vector that can contain elements of different classes. Lists are a very important data type which we should familiarise ourselves with. Elements of lists can be accessed using double square brackets [[]], while elements of other vectors can be accessed using single square brackets [].
+
+<<>>=
+x <- list(1, "a", TRUE, 1 + 4i)
+x[[1]]
+x[[2]]
+x[[3]]
+x[[4]]
+@
+
+\subsection{Matrices}
+
+Matrices are vectors with a \emph{dimension} attribute. The dimension attribute is itself an integer vector of length 2 (nrow, ncol).
+
+<<>>=
+m <- matrix(nrow = 2, ncol = 3)
+m
+dim(m)
+attributes(m)
+@
+
+Matrices are constructed \emph{column-wise}, so entries can be thought of starting in the ``upper left'' corner and running down the columns.
+
+<<>>=
+m <- matrix(1:6, nrow = 2, ncol = 3)
+m
+@
+
+Matrices can also be created directly from vectors by adding a dimension attribute:
+
+<<>>=
+m <- 1:10
+m
+dim(m) <- c(2, 5)
+m
+@
+
+Matrices can also be created by column-binding or row-binding using the cbind() and rbind() functions, respectively:
+
+<<>>=
+x <- 1:3
+y <- 10:12
+cbind(x, y)
+rbind(x,y)
+@
+
+\subsection{Factors}
+
+\begin{itemize}
+  \item Factors are used to represent categorical data. Factors can be unordered or ordered. One can think of a factor as an integer vector where each integer has a \emph{label};
+  \item Factors are treated specially by modelling functions like lm() and glm();
+  \item Using factors with labels is \emph{better} than using integers because factors are self-describing; having a variable that has values ``Male'' and ``Female'' is better than a variable that has values 1 and 2.
+\end{itemize}
+
+Factors can be created using the \textbf{factor()} function:
+
+<<>>=
+x <- factor(c("yes", "yes", "no", "yes", "no"))
+x
+table(x)
+unclass(x)
+attr(x, "levels")
+@
+
+The order of the levels can be set using the \textbf{levels()} argument in the factor() function. This can be important in linear modelling because the first level is used as the baseline level.
+
+<<>>=
+x <- factor(c("yes", "yes", "no", "yes", "no"),
+            levels = c("yes", "no"))
+x
+@
+
+\subsection{Missing values}
+
+Missing values are denoted by \textbf{NA} or \textbf{NaN} for undefined mathematical operations.
+
+\begin{itemize}
+  \item \textbf{is.na()} is used to test objects if they are NA;
+  \item \textbf{is.nan()} is used to test for NaN;
+  \item NA values have a \textbf{class} also, so there are integer NA, character NA, logical NA, etc.;
+  \item A NaN value is also NA but a NA value is not always a NaN value.
+\end{itemize}
+
+<<>>=
+x <- c(1, 2, NA, 10, 3)
+is.na(x)
+is.nan(x)
+x <- c(1, 2, NaN, NA, 4)
+is.na(x)
+is.nan(x)
+@
+
+\subsection{Data Frames}
+
+\textbf{Data frames} are used to store \textbf{tabular} data.
+
+\begin{itemize}
+  \item Data frames are represented as a special type of list where every element of the list must have the same length;
+  \item Each element of the list can be thought of as a column and the length of each element of the list of the number of rows;
+  \item Unlike matrices, data frames can store different classes of objects in each column (similar to lists); elements in a matrix must be of the same class;
+  \item Data frames also have a special attribute called \textbf{row.names};
+  \item Data frames are usually created by calling \textbf{read.table()} or \textbf{read.csv()}.
+\end{itemize}
+
+We can also create data frames using the \textbf{data.frame()} function:
+
+<<>>=
+x <- data.frame(particle = c("a", "b", "c", "d"), energy = c(100, 200, 300, 400))
+x
+nrow(x)
+ncol(x)
+@
+
+\subsection{Names attribute}
+
+All R objects can have names, which is very useful for writing readable code and self-describing objects.
+
+<<>>=
+x <- 1:3
+names(x)
+names(x) <- c("electron", "photon", "positron")
+x
+names(x)
+@
+
+Lists can have names:
+
+<<>>=
+x <- list(a = 1, b = 2, c = 3)
+x
+@
+
+Matrices can have names:
+
+<<>>=
+m <- matrix(1:4, nrow = 2, ncol = 2)
+m
+dimnames(m) <- list(c("a", "b"), c("c", "d"))
+m
+@
+
+\section{Reading data}
+
+There are a few principal functions used for reading data into R:
+
+\begin{itemize}
+  \item \textbf{read.table()} and \textbf{read.csv()} for reading tabular data;
+  \item \textbf{readLines()} for reading lines of a text file;
+  \item \textbf{source()} and \textbf{dget()} for reading in R code files;
+  \item \textbf{load()} for reading in saved workspaces;
+  \item \textbf{unserialize()} for reading single R objects in binary form.
+\end{itemize}
+
+\subsection{Reading tabular data}
+
+The read.table() function is one of the most commonly used functions for reading data into R. It has a few important arguments:
+
+\begin{itemize}
+  \item \textbf{file}: The name of the file, or a connection (e.g. ODBC);
+  \item \textbf{header}: Logical argument indicating if the file has a header line;
+  \item \textbf{sep}: A string indicating how the columns are separated;
+  \item \textbf{colClasses}: A character vector indicating the class of each column in the dataset;
+  \item \textbf{nrows}: The number of rows in the dataset;
+  \item \textbf{comment.char}: A character string indicating the comment character;
+  \item \textbf{skip}: The number of lines to skip from the beginning;
+  \item \textbf{stringsasFactors}: Logical argument specifying if character variables should be coded as factors.
+\end{itemize}
+
+For small to moderately sized datasets, we can usually call the \textbf{read.table()} function without specifiying other arguments. This would lead to R to automatically:
+
+\begin{itemize}
+  \item Skip lines beginning with a $\#$;
+  \item Determine how many rows there are (and how much memory needs to be allocated);
+  \item Determine what type of variable is in each column of the table.
+\end{itemize}
+
+If we explicitly state the parameters for each argument, then R run will faster and more efficiently, though this is not necessary for smaller datasets. N.B. The \textbf{read.csv()} function is identical to \textbf{read.table()} except that the default separator is a \textbf{comma}.
+
+\subsection{Reading large tables}
+
+With much larger datasets, doing the following things will make your life easier and will prevent R from choking:
+
+\begin{itemize}
+  \item Read the help page for read.table, which contains many hints;
+  \item Estimate the amount of memory required to store your dataset - if the dataset is larger than the amount of RAM on your computer, you can probably stop right here;
+  \item Set comment.char = ``'' if there are no commented lines in your file.
+\end{itemize}
+
+Another important step is to use the \textbf{colClasses} argument:
+
+\begin{itemize}
+  \item Specifying the parameter of the ColClasses argument, rather than using the default, can make the read.table() function run much (about 2 times) faster;
+  \item To use this option, you must know the class of each column in your data frame;
+  \item If, for example, all the columns are of class numeric, then you can just set colClasses = ``numeric''.
+\end{itemize}
+
+A quick way to determine the classes of each column is the following:
+
+<<>>=
+# initial <- read.table("sample_data.txt", nrows = 100)
+# classes <- sapply(initial, class)
+# tabAll <- read.table("sample_data.txt", colClasses = classes)
+@
+
+We could also specify the parameter to the \textbf{nrows} argument. This doesn't make R run faster but it helps with memory usage. In general, when using R with larger datasets, it is useful to know some details about your system, including:
+
+\begin{itemize}
+  \item How much memory (RAM) is available?
+  \item What other applications are in use?
+  \item Are there other users logged into the same system?
+  \item What operating system is being used?
+  \item Is the operating system 32-bit (x86) or 64-bit (x64)?
+\end{itemize}
+
+\subsubsection{Calculating memory requirements}
+
+Suppose we have a data frame with 1.5 million rows and 120 columns, all of which are numeric data. To determine how much memory is required to store this data frame, we can do the following set of calculations:
+
+<<>>=
+# Calculate the number of bytes based on the fact that each number requires 8 bytes of RAM.
+bytes <- 1500000 * 120 * 8
+bytes_unit <- "bytes"
+bytes_formatted <- format(bytes, scientific = FALSE, big.mark = ",")
+formatted_bytes <- sprintf("%s %s", bytes_formatted, bytes_unit)
+formatted_bytes
+# Convert bytes to megabytes (MB) - there are 2^20 bytes/MB.
+megabytes <- bytes/2^20
+megabytes_unit <- "MB"
+megabytes_formatted <- format(megabytes, scientific = FALSE, big.mark = ",")
+formatted_megabytes <- sprintf("%s %s", megabytes_formatted, megabytes_unit)
+formatted_megabytes
+# Convert MB to GB - divide by 1000.
+ram_required <- megabytes/1000
+ram_unit <- "GB"
+ram_required_formatted <- format(ram_required, scientific = FALSE, big.mark = ",")
+formatted_ram_required <- sprintf("%s %s", ram_required_formatted, ram_unit)
+formatted_ram_required
+@
+
+
+
+
+
+
+
+
+
+
+\end{document}
