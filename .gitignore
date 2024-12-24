@@ -1,9 +1,9 @@
+*.pdf
 .Rproj.user
 .Rhistory
 .RData
 .Ruserdata
 *.csv
 *-concordance.tex
-*.pdf
 *.tex
 *.log
