@@ -27,7 +27,7 @@
 \graphicspath{ {images/} }
 
 \title{\Large \textbf{R Programming \\ 
-                      \large Module 1: Basics of R Programming}}
+                      \large Week 1: Basics of R Programming}}
 \author{\large \textbf{Johns Hopkins University}}
 
 \begin{document}
@@ -419,13 +419,242 @@ formatted_ram_required <- sprintf("%s %s", ram_required_formatted, ram_unit)
 formatted_ram_required
 @
 
+\section{Textual data formats}
 
+There are other types of formats that you can save data in, aside from the tabular format. One of these is the textual format.
 
+\begin{itemize}
+  \item The R functions \textbf{dump()} and \textbf{dput()} are useful because the resulting textual format is editable and in the case of corruption,  potentially recoverable;
+  \item The \textbf{dump} function takes a vector of names of R objects and produces text representations of the objects on a file or connection;
+  \item The \textbf{dput} function writes an ASCII text representation of an R object to a file or connection, or uses one to recreate the object;
+  \item Unlike writing out a table or CSV file, \textbf{dump} and \textbf{dput} preserve the \emph{metadata} (sacrificing some readability), so that another user doesn't have to specify it all over again;
+  \item \textbf{Textual} formats can work much better with version control programs like Subversion and Git, which can only track changes meaningfully in text files;
+  \item Textual formats can be longer-lived - if there is corruption somewhere in the file, it can be easier to fix the problem;
+  \item A disadvantage is that the format is not very space-efficient.
+\end{itemize}
 
+\section{Connection interfaces}
 
+\subsection{Establishing connections to data sources}
 
+Data are read into R using \textbf{connection} interfaces. Connections can be made to files or to other sources:
 
+\begin{itemize}
+  \item file: Opens a connection to a file;
+  \item gzfile: Opens a connection to a file compressed with gzip;
+  \item bzfile: Opens a connection to a file compressed with bzip2;
+  \item url: Opens a connection to a webpage.
+\end{itemize}
 
+In general, connections are powerful tools that let you navigate files or other external objects. In practice, we don't often need to deal with the connection interface directly. For example,
 
+<<>>=
+# Open connection to file named output.txt
+con <- file("output.txt")
+# Insert some text into the file.
+writeLines(c("Hello","World"), con)
+data <- read.csv(con)
+@
+
+is the same as
+
+<<>>=
+data <- read.csv("output.txt")
+@
+
+However, sometimes there is some advantage in using the connection interface, for example, reading lines of a text file.
+
+\subsection{Reading lines of a text file}
+
+The \textbf{writeLines()} function takes a character vector and writes each element one line at a time to a text file.
+
+<<>>=
+con <- gzfile("words.gz")
+writeLines(c("Hello","World", "the", "quick", "brown", "fox", "jumped", "over", "the", "fence", "this", "is", "a", "test", "file"), con)
+x <- readLines(con, 10)
+x
+@
+
+The \textbf{readLines()} function can be useful for reading in lines of webpages:
+
+<<>>=
+# This might take time
+con <- url("https://publichealth.jhu.edu/", "r")
+x <- readLines(con)
+head(x)
+@
+
+\section{Subsetting}
+
+\subsection{Basics of subsetting}
+
+There are a number of operators that can be used to extract subsets of R objects:
+
+\begin{itemize}
+  \item {[} always returns an object of the same class as the original and can be used to select more than one element;
+  \item {[[} is used to extract elements of a list or data frame; it can only be used to extract a single element and the class of the returned object will not necessary be a list or data frame;
+  \item $\$$ is used to extract elements of a list or data frame by name - semantics are similar to that of {[[}.
+\end{itemize}
+
+Example:
+
+<<>>=
+x <- c("a", "b", "c", "c", "d", "a")
+# Exploring numerical indexes
+x[1] # First element of x
+x[2] # Second element of x
+x[1:4] # Elements 1 to 4 (inclusive)
+
+# Exploring logical indexes
+x[x > "a"] # All elements greater than "a" (after "a")
+u <- (x > "a") # New logical vector to display true/false based on condition
+u
+@
+
+\subsection{Subsetting lists}
+
+Let's look at how to perform subsetting using lists:
+
+<<>>=
+x <- list(m = 1:10, e = 0.6)
+x[1]
+x[[1]]
+x["e"]
+x[["e"]]
+x$e
+x <- list(m = 1:4, e = 0.6, k = "hello")
+x[c(1, 3)]
+@
+
+The {[[} operator can be used with \emph{computed} indices; $\$$ can only be used with literal names.
+
+<<>>=
+x <- list(m = 1:4, e = 0.6, k = "hello")
+name <- "m"
+x[[name]] ## Computed index for "m"
+x$name # Element "name" does not exist
+x$m
+@
+
+\subsubsection{Subsetting nested elements of a list}
+
+The {[[} operator can take an integer sequence:
+
+<<>>=
+x <- list(a = list(10, 12, 14), b = c(3.14, 2.81))
+x[[c(1, 3)]]
+x[[1]][[3]]
+x[[c(2, 1)]]
+@
+
+\subsection{Subsetting matrices}
+
+Matrices can be subsetted in the usual way with (i, j) type indices.
+
+<<>>=
+x <- matrix(1:6, 2, 3)
+x
+x[1, 2]
+x[2, 1]
+@
+
+We can also subset by only specifying one index:
+
+<<>>=
+x[1, ]
+x[ ,2]
+@
+
+By default, when a single element of a matrix is retrieved, it is returned as a vector of length 1 rather than a 1x1 row vector. This behaviour can be turned off by setting \textbf{drop = FALSE}.
+
+<<>>=
+x <- matrix(1:6, 2, 3)
+x[1, 2]
+x[1, 2, drop = FALSE]
+@
+
+Similarly, subsetting a single column or a single row will give you a vector, not a matrix (by default).
+
+<<>>=
+x <- matrix(1:6, 2, 3)
+x[1, ]
+x[1, , drop = FALSE]
+@
+
+\subsection{Partial matching}
+
+Partial matching of names is allowed with {[[} and $\$$:
+
+<<>>=
+x <- list(values = 1:5)
+x$v
+x[["v"]]
+x[["v", exact = FALSE]]
+@
+
+\subsection{Removing missing values}
+
+A common task is to remove missing values (NAs):
+
+<<>>=
+x <- c(1, 2, NA, 4, NA, 5)
+bad <- is.na(x)
+x[!bad]
+@
+
+Consider the situation where there are two vectors, x and y. If we want to extract the subset which contains no missing values, we use the \textbf{complete$\_$cases()} function:
+
+<<>>=
+# Define x and y vectors
+x <- c(1, 2, NA, 4, NA, 5)
+y <- c("a", "b", NA, "d", NA, "f")
+# Use complete.cases to return a logical vector indicating which cases are complete, i.e., have no missing values
+good <- complete.cases(x, y)
+good
+x[good]
+y[good]
+@
+
+We can also use complete.cases to remove missing values from data frames.
+
+<<>>=
+airquality[1:6, ]
+good <- complete.cases(airquality)
+airquality[good, ][1:6]
+@
+
+\section{Vectorised operations}
+
+Many operations in R are \textbf{vectorised} making code more efficient, concise, and easier to read.
+
+<<>>=
+x <- 1:4
+y <- 6:9
+x + y
+x > 2
+x >= 2
+y == 8
+x * y
+x/y
+@
+
+Suppose we have two matrices, x and y, defined as below:
+
+<<>>=
+x <- matrix(1:4, 2, 2) # 2x2 matrix
+y <- matrix(rep(10, 4), 2, 2) # Also a 2x2 matrix
+@
+
+There are two types of multiplication we can perform on these matrices. The first is \textbf{element-wise} multiplication:
+
+<<>>=
+x * y
+@
+
+and the second type is true matrix multiplication (as we understand from linear algebra):
+
+<<>>=
+x %*% y
+@
 
 \end{document}
