@@ -1,0 +1,235 @@
+---
+title: "Programming with R"
+author: "Hiten Pragji"
+date: "`r Sys.Date()`"
+output: 
+  pdf_document:
+    toc: true
+    number_sections: true
+    latex_engine: xelatex
+geometry: margin=0.5in
+fontsize: 11pt
+header-includes:
+  - \usepackage{amsmath}
+  - \usepackage{amssymb}
+  - \usepackage{graphicx}
+  - \usepackage[numbers]{natbib}
+  - \usepackage{url}
+  - \usepackage{caption}
+  - \usepackage{notoccite}
+  - \usepackage{enumitem}
+  - \usepackage{caption}
+  - \usepackage{xcolor}
+  - \usepackage{titlesec}
+  - \usepackage{parskip}
+  - \usepackage{hyperref}
+  - \usepackage{mathtools}
+  - \usepackage{bm}
+  - \usepackage{dsfont}
+  - \usepackage{bigints}
+  - \usepackage[nointlimits]{esint}
+  - \usepackage{titlesec}
+---
+
+\newpage
+\section{Introduction}
+
+In this course, we will:
+
+\begin{itemize}
+  \item Write an if-else expression;
+  \item Write a for-loop, a while loop, and a repeat loop;
+  \item Define a function in R and specify its return value;
+  \item Describe how R binds a value to a symbol via the search list;
+  \item Define what lexical scoping is with respect to how the value of free variables are resolved in R;
+  \item Describe the difference between lexical scoping and dynamic scoping rules;
+  \item Convert a character string representing a date/time into a R datetime object.
+\end{itemize}
+\section{Control Structures}
+\subsection{Introduction}
+
+Control structures in R allow you to control the flow of execution of the program, depending on runtime conditions. Common structures include:
+
+\begin{itemize}
+  \item \textbf{if, else}: testing a condition
+  \item \textbf{for}: execute a loop a fixed number of times
+  \item \textbf{while}: execute a loop while a condition is true
+  \item \textbf{repeat}: execute an infinite loop
+  \item \textbf{break}: break the execution of a loop
+  \item \textbf{next}: skip an iteration of a loop
+  \item \textbf{return}: exit a function
+\end{itemize}
+
+Most control structures are not used in interactive sessions, but rather when writing functions or longer expressions.
+
+\subsection{if-else}
+
+The if- combined with else- statement allows you to test logical conditions and determine the course of action depending on whether a condition is true or false. If the condition is false, it does something else. The else- part is optional, so you can have an if- statement that only does something if the condition is true.
+
+If you have more than one possible condition to check, you can use if - else if - else. There can be any number of else if- conditions in this structure, but the else- block should come at the end.
+
+\textbf{Syntax for if-else statement}:
+
+if(<condition>){
+
+<do something>
+
+} else {
+
+<do something else>
+
+}
+
+\textbf{Syntax for if-else if-else statement}:
+
+if(<condition>){
+
+<do something>
+
+} else if (<condition2>){
+
+<do something different>
+
+} else {
+
+<do something different> }
+
+\subsection{For loops}
+
+A for-loop iterates over a sequence of values. The loop index (commonly denoted as i) takes on each value in the sequence, and the loop executes a block of code for each iteration. An example of a simple for-loop is:
+
+for (i in 1:10){
+
+print(i)
+
+}
+
+which prints the numbers 1 to 10. Different approaches to for-loops include:
+
+\begin{enumerate}
+  \item \textbf{Indexed by sequence}: Loop through indices to access elements in a vector. \newline Example: for (i in 1:4) {print(x[i])} where x = c("a", "b", "c", "d");
+  \item \textbf{Using seq$\_$along()}: Automatically generate a sequence based on vector length. \newline Example: for (i in seq$\_$along(x)){print(x[i])};
+  \item Direct element iteration: Iterate directly over vector elements. \newline Example: for (letter in x) {print(letter)};
+  \item Compact syntax: Single-line loops without curly braces. \newline Example: for (i in 1:4) print(x[i]).
+\end{enumerate}
+
+\subsubsection{Nested for-loops}
+
+For-loops can be nested, which means we can have a for-loop inside a for-loop. This is useful for multi-dimensional structures like matrices. For example, consider the following matrix:
+
+```{r}
+x <- matrix(1:6, nrow = 2, ncol = 3)
+print(x)
+```
+
+This is a 2x3 matrix (2 rows and 3 columns). Now consider the following nested for-loop:
+
+```{r}
+for (i in seq_len(nrow(x))){
+  for (j in seq_len(ncol(x))){
+    print(x[i, j])
+  }
+}
+```
+
+Inside the main loop, or outer loop, sits another loop, or inner loop, which will run through all of its iterations on each iteration of the outer loop. The outer loop iterates over rows while the inner loop iterates over columns. i can take values from 1 to 3 (3 columns) while j can take values from 1 to 2 (2 columns). Let's break down the execution flow for this example:
+
+\begin{enumerate}
+  \item Outer loop (i = 1):
+    \begin{itemize}
+      \item Inner loop (j = 1): Prints x[1, 1] = 1.
+      \item Inner loop (j = 2): Prints x[1, 2] = 3.
+      \item Inner loop (j = 3): Prints x[1, 3] = 5.
+    \end{itemize}
+  \item Outer loop (i = 2):
+    \begin{itemize}
+      \item Inner loop (j = 1): Prints x[2, 1] = 2.
+      \item Inner loop (j = 2): Prints x[2, 2] = 4.
+      \item Inner loop (j = 3): Prints x[2, 3] = 6.
+    \end{itemize}
+\end{enumerate}
+
+The loop prints each matrix element in row-major order (left-to-right, top-to-bottom). N.B. In a nested for-loop in R, the outer loop executes first, and for each iteration of the outer loop, the inner loop runs completely.
+
+\subsection{While loops}
+
+A while loop reruns a chunk while a certain condition remains true. To create a while loop, follow while by a condition and a chunk of code, like this:
+
+```{r}
+count <- 0
+while (count < 10){
+  print(count)
+  count <- count + 1
+}
+```
+
+Observe that the output of this while loop is a numeric vector of integers from 0 to 9. This is the execution flow:
+
+\begin{enumerate}
+  \item Create a variable named count and assign it a value of 0;
+  \item Initialise the while loop with the condition that count < 10;
+  \item Run the loop for count = 0, print this value, then increase its value by 1;
+  \item Run through the loop again, repeating step 3.
+  \item When the value of count is 9, the loop ends.
+\end{enumerate}
+
+Some notes about while loops:
+
+\begin{itemize}
+  \item while will rerun the condition (count < 10) at the start of each loop;
+  \item If the condition evaluates to true, while will run the code between its braces. If the condition evaluates to false, while will finish the loop;
+  \item The condition might change from true to false because the code inside the loop has changed whether the condition is still true.
+\end{itemize}
+
+N.B. You can stop a while loop by hitting Escape or by clicking on the stop-sign at the top of the RStudio console pane. The icon will appear once the loop begins to run. Like for loops, while loops do not return a result, so you must think about what you want the loop to return and save it to an object during the loop. \\ Sometimes there will be more than one condition in the test. Consider this example:
+
+```{r}
+z <- 5
+
+while (z >= 3 && z <= 10){
+  print(z)
+  coin <- rbinom(1, 1, 0.5)
+  
+  if (coin == 1){
+    z <- z + 1
+  } else {
+    z <- z - 1
+  }
+}
+```
+
+Let's run through the execution flow:
+
+\begin{enumerate}
+  \item Create a variable z and assign it a value of 5;
+  \item Initialise the while loop with the condition that z >= 3 and z <= 10;
+  \item Print the value of z
+  \item Define a single, fair coin flip using the rbinom function;
+  \item If the coin is a 1, add 1 to the value of z;
+  \item If the coin is a 0, subtract 1 from the value of z.
+\end{enumerate}
+
+\subsection{Repeat, next, break}
+
+\textbf{Repeat} loops are even more basic than while loops. They will repeat a chunk of code until you tell them to stop (by hitting Escape) or until they encounter the command \textbf{break}, which will stop the loop. Repeat is not commonly used in statistical applications but they do have their uses. In the example below, we produce a repeat loop to approximate the square root of a number.
+
+Newton's method is one of many known methods of computing square roots. Given a positive number \emph{a}, the problem of finding a number \emph{x} such that $x^{2} = a$ is equivalent to finding a root of the function $f(x) = x^{2} - a$. The Newton iteration defined by this function is given by
+
+\begin{align}
+  x_{n+1} &= x_{n} - \frac{f(x_{n})}{f'(x_{n})} \nonumber \\
+          &= x_{n} - \frac{x_{n}^{2} - a}{2x_{n}} \nonumber \\
+          &= \frac{1}{2}\left(x_{n} + \frac{a}{x_{n}}\right)
+\end{align}
+
+Suppose \emph{a} = 25 and we initialise the iteration at x$_{0}$ = 1.
+
+This method iteratively improves an estimate until the desired accuracy is achieved.
+
+```{r}
+number <- 25        # Number we want the square root of
+x0 <- 1             # Initial guess
+tolerance <- 1e-8   # Convergence criterion
+
+```
+
+Let's run through the execution flow:
