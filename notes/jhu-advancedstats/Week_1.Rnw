@@ -1,0 +1,575 @@
+\documentclass[10pt,a4paper,twoside]{article}
+\usepackage[numbers]{natbib}
+\usepackage{url}
+\usepackage{caption}
+\usepackage{notoccite}
+\usepackage{enumitem}
+\usepackage[margin=0.5in]{geometry}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{parskip}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{bm}
+\usepackage{dsfont}
+\usepackage{bigints}
+\usepackage[nointlimits]{esint}
+\usepackage{titlesec}
+\titleformat*{\section}{\normalsize \bfseries}
+\titleformat*{\subsection}{\normalsize \bfseries}
+\titlespacing\section{0pt}{10pt}{10pt}
+\titlespacing\subsection{0pt}{10pt}{10pt}
+\titlespacing\subsubsection{0pt}{10pt}{10pt}
+\graphicspath{ {images/} }
+
+\title{\Large \textbf{Week 1: Probability, Expectations and Random Vectors}}
+\author{\large \textbf{Hiten Pragji}}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Introduction}
+\subsection{Course Description}
+
+Statistics is a thriving discipline that provides the fundamental language of all empirical research. Biostatistics is simply the field of statistics applied in the biomedical sciences.
+
+This course puts forward key mathematical and statistical topics to help students understand biostatistics at a deeper level. After completing this course, students will have a basic level of understanding of the goals, assumptions, benefits and negatives of probability modeling in the medical sciences. This understanding will be invaluable when approaching new statistical topics and will provide students with a framework and foundation for future self learning.
+
+Topics include probability, random variables, distributions, expectations, variances, independence, conditional probabilities, likelihood and some basic inferences based on confidence intervals.
+
+\subsection{Learning Objectives}
+
+The goal of this course is to equip biostatistics and quantitative scientists with core applied statistical concepts and methods:
+
+\begin{itemize}
+  \item Students will learn basic mathematical biostatistics including probability distributions and their properties.
+  \item Students will learn the basics of statistical likelihood.
+  \item Students will learn the basics of confidence intervals.
+  \item The course will introduce students to the display and communication of statistical data. This will include graphical and exploratory data analysis using tools like scatterplots, boxplots and the display of multivariate data.
+\end{itemize}
+
+\section{Lecture 1: Experiments and Probability}
+\subsection{Biostatistics and Experiments}
+
+Biostatistics plays a central role in public health. We should note the importance of performing design, analysis, and interpretation of statistical data correctly. At the Johns Hopkins Bloomberg School and Public Health, the prevailing philosophy for conducting biostatistics includes:
+
+\begin{itemize}
+  \item A tight coupling of the statistical methods with the ethical and scientific goals.
+  \item Emphasising scientific interpretation of statistical evidence to impact policy.
+  \item Acknowledging our assumptions and evaluating the robustness of conclusions to them.
+\end{itemize}
+
+Consider the outcome of an experiment such as:
+
+\begin{itemize}
+  \item A collection of measurements from a sampled population.
+  \item Measurements from a laboratory experiment.
+  \item The result of a clinical trial.
+  \item The result from a simulated (computer) experiment.
+  \item Values from hospital records sampled retrospectively.
+\end{itemize}
+
+\subsection{Set Notation and Probability}
+\subsubsection{Set Notation Basics}
+
+Before we begin discussing probability, we require some very basic mathematics.
+
+\begin{itemize}
+  \item The \textbf{sample space $\Omega$} is the collection of possible outcomes of an experiment, for example, for a die roll, $\Omega$ = \{1, 2, 3, 4, 5, 6\}.
+  \item An \textbf{event $E$} is a subset of $\Omega$, for example, if a die roll is even, $E$ = \{2, 4, 6\}.
+  \item An \textbf{elementary} or \textbf{simple event} is a particular result of an experiment, for example, a die roll is a four, $\omega$ = 4.
+  \item $\emptyset$ is called the \textbf{null event} or the \textbf{empty set}.
+\end{itemize}
+
+\subsubsection{Interpretation of set operations}
+
+Normal set operations have particular interpretations in this setting:
+
+\begin{enumerate}
+  \item $\omega$ $\in$ $E$ implies that $E$ occurs when $\omega$ occurs.
+  \item $\omega$ $\notin$ $E$ implies that $E$ does not occur when $\omega$ occurs.
+  \item $E$ $\subset$ $F$ implies that the occurrence of $E$ implies that occurrence of $F$.
+  \item $E$ $\cap$ $F$ implies the event that both $E$ and $F$ occur.
+  \item $E$ $\cup$ $F$ implies the event that at least one of $E$ or $F$ occur.
+  \item $E$ $\cap$ $F$ = $\emptyset$ means that $E$ and $F$ are \textbf{mutually exclusive}, or cannot both occur.
+  \item $E^{c}$ or $\bar{E}$ is the event that $E$ does not occur.
+\end{enumerate}
+
+\subsubsection{De Morgan's Laws}
+
+De Morgan's laws, also known as De Morgan's theorem, are a pair of transformation rules that are both valid rules of inference. The rules can be expressed in English as
+
+\begin{enumerate}
+  \item not(A or B) = (not A) and (not B)
+  \item not (A and B) = (not A) or (not B)
+\end{enumerate}
+
+where ``A or B'' is an ``inclusive or'' meaning \emph{at least} one of A or B rather than an ``exclusive or'' that means \emph{exactly} one of A or B. In set theory and Boolean algebra, these are written formally as
+
+\begin{enumerate}
+  \item $\bar{A \cup B} = \bar{A} \cap \bar{B}$
+  \item $\bar{A \cap B} = \bar{A} \cup \bar{B}$
+\end{enumerate}
+
+where
+
+\begin{enumerate}
+  \item $A$ and $B$ are sets;
+  \item $\bar{A}$ is the complement of $A$;
+  \item $\cap$ is the intersection;
+  \item $\cup$ is the union.
+\end{enumerate}
+
+\begin{figure}[!ht]
+  \centering
+  \includegraphics[scale=0.30]{C:/Users/pragj/OneDrive/Documents/R Studio/Advanced Statistics for Data Science/Mathematical Biostatistics 1/Demorganlaws.png}
+  \caption{De Morgan's laws represented with Venn diagrams.}
+  \label{Figure 1}
+\end{figure}
+
+\subsubsection{How probability underpins experiments}
+
+For a given experiment:
+
+\begin{itemize}
+  \item Attribute all that is known or theorised to a systematic model (mathematical function);
+  \item Attribute everything else to randomness, \emph{even if the process under study is known not to be ``random'' in any sense of the word}.
+  \item Use probability to quantify the uncertainty in your conclusions.
+  \item Evaluate the sensitivity of your conclusions to the assumptions of your model.
+\end{itemize}
+
+In the first few lectures, we'll largely talk about the mathematics and basic uses of probability. However, this is only a small starting point in the use of probability in data analyses. Keep the following questions in the back of your mind as we cover using probability for data analyses:
+
+\begin{itemize}
+  \item What is being modelled as random?
+  \item Where does this attributed randomness come from?
+  \item Where did the systematic model components arise from?
+  \item How did observational units come to be in the study and is there importance to the missing data points?
+  \item Do the results generalise beyond the study in question?
+  \item Were important variables unaccounted for in the model?
+  \item How drastically would inferences change depending on the answers to the previous questions?
+\end{itemize}
+
+\section{Lecture 2: Probability and Variables}
+\subsection{Probability}
+
+A \textbf{probability measure}, \emph{P}, is a real valued function from the collection of possible events so that the following hold:
+
+\begin{enumerate}
+  \item For an event $E$ $\in$ $\Omega$, $0 \leq P(E) \leq 1$. In other words, $P$ is a function which maps an event $E$ (a subset of the sample space $\Omega$) to numbers between 0 and 1.
+  \item $P(\Omega) = 1$
+  \item If $E_{1}$ and $E_{2}$ are mutually exclusive events then $P(E_{1} \cup E_{2}) = P(E_{1}) + P(E_{2})$.
+\end{enumerate}
+
+You should be able to prove the following:
+
+\begin{itemize}
+  \item $P(\emptyset) = 0$: The probability of the null set is zero - the probability that nothing happens is zero.
+  \item $P(E) = 1 - P(E^{c})$: The probability of an event is equal to 1 minus the probability of its compliment.
+  \item $P(A \cup B) = P(A) + P(B) - P(A \cap B)$: The probability of the union of two events is the probability of their sum minus their intersection (if they are not mutually exclusive).
+  \item If $A \in B$, then $P(A) \leq P(B)$.
+  \item $P(A \cup B) = 1 - P(A^{c} \cap B^{c})$: from DeMorgan's laws.
+  \item $P(A \cap B) = P(A) - P(A \cap B)$.
+  \item $P(\cup_{i = 1}^{n}E_{i}) \leq \sum_{i = 1}^{n} P(E_{i})$: The probability of the union of a collection of events is less than or equal to the sum of the probability of the events.
+  \item $P(\cup_{i = 1}^{n} E_{i}) \geq \max_{i} P(E_{i})$. The probability of the union of events is bigger than the probability of the maximum of the collection of probabilities. This rule holds whether or not the events are mutually exclusive.
+\end{itemize}
+
+\subsection{Random Variables}
+
+A \textbf{random variable} is a \emph{numerical outcome} of an experiment. The random variables that we study will come in two varieties, \textbf{discrete} or \textbf{continuous}:
+
+\begin{itemize}
+  \item \textbf{Discrete random variables} are random variables that take on only a \emph{countable} number of possibilities: $P(X = k)$.
+  \item \textbf{Continuous random variables} can take \emph{any value} on the real line or some subset of the real line: $P(X \in A)$.
+\end{itemize}
+
+It is important to note that it possible for a random variable to be both discrete \emph{and} continuous. Consider an insurance company that was determining the amounts for payouts. For those individuals that did not get sick, the payout would be exactly zero. For everyone else, they may be paid a certain amount; this would probably be best modelled by a continuous random variable because the amount would be accounted for down to the fraction of a penny. Therefore, if the insurance company was evaluating the distributional behaviour of expenditures, they might want to model that with a random variable that can take both the discrete value zero and the continuous values for all expenditures beyond zero.
+
+Some examples of variables that can be thought of as random variables:
+\begin{itemize}
+  \item The (0 - 1) outcome of the flip of a coin.
+  \item The outcome from the roll of a die.
+  \item The BMI of a subject four years after a baseline measurement.
+  \item The hypertension status of a subject randomly drawn from a population.
+\end{itemize}
+
+\section{Lecture 3: PMFs, PDFs, and CDFs}
+\subsection{Probability mass and distribution functions}
+\subsubsection{Probability mass functions}
+
+In order to map the rules of probability to random variables, we need functions. For \textbf{discrete random variables}, these functions are called \textbf{probability mass functions}. A probability mass function (PMF) evaluated at a value corresponds to the probability that a random variable takes that value. To be a valid PMF, a function, $p$, must satisfy the following conditions:
+
+\begin{enumerate}
+  \item $p(x) \geq 0$ for all $x$
+  \item $\sum_{x}p(x)$ = 1
+\end{enumerate}
+
+where the sum in condition 2 is taken over all of the possible values for $x$. Let's explore an example of constructing a PMF. Let $X$ be the result of a coin flip where $X$ = 0 represents tails and $X$ = 1 represents heads. Then, we have
+
+\begin{align}
+  \centering
+  p(x) = (1/2)^{x}(1/2)^{1-x} \qquad for x = 0, 1.
+\end{align}
+
+Suppose that we do not know whether or not the coin is fair. Let $\theta$ be an unknown parameter which equals the probability of a head expressed as a proportion (between 0 and 1). Then, we have
+
+\begin{align}
+  \centering
+  p(x) = \theta^{x}(1 - \theta)^{1-x} \qquad for x = 0, 1.
+\end{align}
+
+In this case, the PMF is the entity that governs the population of coin flips. Hence, if we want to find $\theta$, we need to collect data to estimate it, and then evaluate the uncertainty in that estimate. The way in which we would evaluate uncertainty in that estimate is by using the probability distribution.
+
+Let's show the proof that the expression in Equation 2 is indeed a PMF. For the unfair coin, we have
+
+\begin{align}
+  p(0) &= 1 - \theta \\
+  p(1) &= \theta
+\end{align}
+
+Since $\theta$ is some unknown probability between 0 and 1, $p(x) > 0$ for $x$ = 0, 1. Thus, we have: $p(0)$ + $p(1)$ = $\theta$ + (1 - $\theta$) = 1.
+
+\subsubsection{Probability density functions}
+
+A probability density function (PDF) is a function associated with a continuous random variable. Areas under PDFs correspond to probabilities for that random variable. To be a valid PDF, a function $f$ must satisfy:
+
+\begin{enumerate}
+  \item $f(x) \geq 0$ for all $x$
+  \item $\int_{-\infty}^{\infty}f(x)dx$ = 1.
+\end{enumerate}
+
+Let's go through a specific example of a PDF to put this in a context. Assume that the time in years from diagnosis until death of persons with a specific kind of cancer is modelled by the following density:
+
+\begin{align}
+  f(t)=\left\{
+    \begin{array}{ll}
+      \frac{e^{-\frac{t}{5}}}{5} & \text{for } t > 0 \\
+            0 & \text{otherwise}
+    \end{array}
+        \right.
+\end{align}
+
+Equation (5) is more compactly written as $f(t) = \frac{1}{5}e^{-t/5}$ for $t > 0$. Equation (5) is a restricted example of a density that is commonly used in analyses of survival times and it is known as the exponential density function. We want to know if Equation (5) is a valid density or, in other words, could we model the survival time after diagnosis with this density? To determine this, we need to check whether the function satisfies the two conditions required for a PDF to be valid. Firstly, we know that the function is positive since $e$ raised to any power is positive. Secondly, if we integrate Equation (5) for $t > 0$, we get
+
+\begin{align}
+  \centering
+  \int_{0}^{\infty} f(t)dt = \int_{0}^{\infty} \frac{e^{-t/5}}{5}dt = -e^{-t/5}\Big|_0^\infty
+\end{align}
+
+which evaluates to 0 - - 1 = 1. Now let's look at an example of using this PDF to assign probabilities. How would we find the probability that a randomly selected person from this distribution survives more than 6 years? Given that $X$ is our conceptual value that the randomly selected person takes, we can find the probability of the person surviving more than 6 years, as follows:
+
+\begin{align}
+  \centering
+  P(X \geq 6) = \int_{6}^{\infty}\frac{e^{-t/5}}{5}dt = -e^{-t/5}\Big|_6^\infty
+  = 0 - -e^{-6/5}
+  = e^{-6/5} \approx 0.301
+\end{align}
+
+Alternatively, we can evaluate it in R using the \textbf{pexp} function. The pexp function allows you to calculate the probabilities of a random variable $X$ taking values lower than $x$.
+
+<<>>=
+sixyear_prob <- 1 - pexp(6, rate = 1/5, lower.tail = TRUE, log.p = FALSE)
+print(sixyear_prob)
+@
+
+Note that the argument lower.tail by default is TRUE if probabilities are $P(X \leq x)$ and otherwise FALSE for $P(X > x)$. Hence for probabilities $P(X \geq x)$, we can either use the pexp function with lower.tail as FALSE or we can find the complement of $P(X < x)$ (which is $P(X \geq x)$) by evaluating 1 - $P(X < x)$ and specifying lower.tail as TRUE.
+
+Also note that for a continuous random variable, the probability that it takes any \textbf{specific} value is in fact zero. This is because a continuous random variable is a random variable whose CDF is continuous everywhere; there are no ``gaps'', which would correspond to numbers which have a finite probability of occurring. Instead, continuous random variables almost never take an exact prescribed value $x$: $\forall x \in \mathbb{R}: Pr(X = x) = 0$.
+
+The grey area in the plot generated by the code chunk below depicts the area that we are calculating in Equation (7) - this area is the survival time from six to infinity:
+
+<<>>=
+xvals <- seq(0, 20, length = 1000) 
+plot(xvals, dexp(xvals, 1/5), xlab = "Survival time in years",
+     ylab = "density",
+     frame = FALSE,
+     type = "l")
+polygon(c(xvals[xvals >= 6], rev(xvals[xvals >= 6])),
+        c(dexp(xvals[xvals >= 6], 1/5), rep(0, sum(xvals >= 6))),
+        col = grey(.5)
+        )
+@
+
+\subsection{CDFs, Survival Functions, and Quantiles}
+
+\subsubsection{CDFs and Survival Functions}
+
+The cumulative distribution function (CDF) $F(x)$ of a random variable $X$ is defined as the function
+
+\begin{align}
+  \centering
+  F(x) = P(X \leq x)
+\end{align}
+
+and this applies regardless of whether $X$ is discrete or continuous. The survival function $S(x)$ of a random variable $X$ is defined as
+
+\begin{align}
+  \centering
+  S(x) = P(X > x)
+\end{align}
+
+Note that $S(x) = 1 - F(x)$. For continuous random variables, the PDF is the derivative of the CDF. Figure 2 shows the difference between $F(x)$ and $S(x)$.
+
+\begin{figure}[!h]
+  \centering
+  \includegraphics[scale=0.30]{C:/Users/pragj/OneDrive/Documents/R Studio/Advanced Statistics for Data Science/Mathematical Biostatistics 1/survivaltime.png}
+  \caption{Exponential CDF. $F(x) + S(x) = 1$.}
+  \label{Figure 2}
+\end{figure}
+
+Let's now recall our previous CDF in Equation (5). We want to find the survival function $S(x)$ and the CDF $F(x)$ from this exponential density function. Using Equation(9), we have
+
+\begin{align}
+  \centering
+  S(x) = \int_{x}^{\infty} \frac{e^{-t/5}}{5}dt = -e^{-t/5}\Big|_x^\infty
+  = e^{-x/5}
+\end{align}
+
+hence, we know that
+
+\begin{align}
+  \centering
+  F(x) = 1 - S(x) = 1 - e^{-x/5}
+\end{align}
+
+Notice that we can recover the PDF by differentiating the CDF:
+
+\begin{align}
+  \centering
+  f(x) = F'(x) = \frac{d}{dx}(1 - e^{-x/5}) = e^{-x/5}/5.
+\end{align}
+
+\subsubsection{Quantiles}
+
+Quantiles are cut points dividing the range of a probability distribution into continuous intervals with equal probabilities. The $\alpha^{th}$ quantile of a distribution with distribution function $F$ is the point $x_{\alpha}$ so that 
+
+\begin{align}
+  F(x_{\alpha}) = \alpha
+\end{align}
+
+In other words, the $\alpha$ quantile distribution $F(x_{\alpha})$ is the point at which the probability of being less than that point is exactly $\alpha$. A \textbf{percentile} is simply a quantile with $\alpha$ expressed as a percentage. The \textbf{median} is the 50$^{th}$ percentile.
+
+As an example, suppose that $\alpha$ is 0.25, which is the 25$^{th}$ (or lower) percentile. Then, the value $x_{0.25}$ is the value at which the probability of being less than that value is 25$\%$. Returning to our cancer survival example, the lower quantile $x_{0.25}$ of that distribution is equal to the time of survival so that 25$\%$ of the people survive less than that time.
+
+Let's go through these concepts again by referring to Figure 3. Suppose we want to find the point $x$ on the horizontal axis (survival time in years) so that the white area to the left of it is 0.25, i.e., we want to find the value of the or lower quantile $x_{0.25}$ of the exponential survival distribution.
+
+\begin{figure}[!h]
+  \centering
+  \includegraphics[scale = 0.75]{C:/Users/pragj/OneDrive/Documents/R Studio/Advanced Statistics for Data Science/Mathematical Biostatistics 1/quantile.png}
+  \caption{Exponential CDF.}
+  \label{Figure 3}
+\end{figure}
+
+We need to solve for x using the example exponential PDF from Equation (11):
+
+\begin{align*}
+  F(x_{\alpha}) = 1 - e^{-x/5} = 0.25\\
+  \Rightarrow 1 - e^{-x/5} = 0.25 \\
+  \Rightarrow e^{-x/5} = 0.75 \\
+  \Rightarrow x = 1.44
+\end{align*}
+
+Therefore, we can state that 25$\%$ of the subjects from this population live less than 1.44 years. R can approximate exponential quantiles easily using the \textbf{qexp} function:
+
+<<>>=
+# qexp(p, rate = 1, lower.tail = TRUE, log.p = FALSE)
+@
+
+where \textbf{p} is a vector of probabilities, the \textbf{rate} is a vector of rates which is determined by the factor in the exponent of the PDF f(x), \textbf{lower.tail} is TRUE by default if probabilities are $P(X \leq x)$ (otherwise FALSE if $P(X > x)$), and \textbf{log.p} is FALSE by default (TRUE if the probability $p$ is given as log(p)). For example, to find the lower quantile for our PDF, we have:
+
+<<>>=
+quantile_25 <- qexp(p = 0.25, rate = 1/5)
+quantile_25
+@
+
+\subsubsection{Probability models}
+
+We are familiar with the concept of a median and a quartile; conceptually, the median is the ``middle'' of the data, or the point in the data at which half of the observations are lower than it, and the lower quartile, for example, is the point in the data at which a quarter of the observations are lower than it. The quantities that we have considered in this lecture are \textbf{population quantities}, i.e., \textbf{population median}. When we collect data and calculate a sample median, that is an \textbf{estimate} of something. The something that we are trying to estimate is called the \textbf{estimand}. For example, the sample median is an estimator and the population median is the estimand; the aim of the sample median is to try to estimate the population median. In this lecture, we have discovered one way to construct estimands of these quantities (median, mean, quantiles etc.). A \textbf{probability model} connects the data to the population using assumptions.
+
+\section{Lecture 4: Expected Values, Variances, and Standard Deviation}
+\subsection{Expected Values}
+\subsubsection{Discrete random variables}
+
+The \textbf{expected value} or \textbf{mean} of a random variable is the centre of its distribution. For a discrete random variable $X$ with PMF $p(x)$, it is defined as follows:
+
+\begin{align}
+  E[X] = \sum_{x}xp(x)
+\end{align}
+
+where the sum is taken over all possible values of $x$. $E[X]$ represents the centre of mass of a collection of locations and weights, $(x, p(x))$. Let's determine how to calculate the expected value for a coin flip. Suppose a coin is flipped and $X$ is declared 0 or 1, which corresponds to a head or a tail, respectively. The expected value, $E[X]$, is given by
+
+\begin{align*}
+  E[X] &= (0.5 \text{ x} \ 0) + (0.5 \text{ x} \ 1) \\
+  &= 0.5
+\end{align*}
+
+i.e., the expected value for a coin flip is equal to the sum of the products of the result with its corresponding probability. If we consider this example in a geometric sense with two equal weights spaced on a line at 0 and 1, then the centre of mass will be 0.5. Let's consider a second example. Suppose that a die is rolled and $X$ is the number face up. What is the expected value of $X$? We have
+
+\begin{align*}
+  E[X] &= \left(\frac{1}{6} \text{ x} \ 1\right) + \left(\frac{1}{6} \text{ x} \ 2\right) + \left(\frac{1}{6} \text{ x} \ 3\right) + \left(\frac{1}{6} \text{ x} \ 4\right) + \left(\frac{1}{6} \text{ x} \ 5\right) + \left(\frac{1}{6} \text{ x} \ 6\right) \\
+  &= 3.5
+\end{align*}
+
+The geometric argument for this example makes the answer obvious without calculation (the middle value is 3.5).
+
+\subsubsection{Continuous random variables}
+
+For a continuous random variable $X$ with density $f$, the expected value $E[X]$ is defined by
+
+\begin{align}
+  E[X] = \int_{-\infty}^{\infty}tf(t) dt.
+\end{align}
+
+This definition borrows from the definition of centre of mass for a continuous body. Consider a density defined by the function f(x) given by
+
+\begin{align}
+  f(x)=\left\{
+  \begin{array}{ll}
+    0 & \text{for } -0.5 \leq x < 0 \\
+    1 & \text{for } 0 \leq x < 1 \\
+    0 & \text{for } 1 \leq x < 1.5
+  \end{array}
+      \right.
+\end{align}
+
+The density in Equation (16) is very important and is known as the \textbf{standard uniform density}. Now suppose that the continuous random variable $X$ follows this density; what is its expected value? Intuitively, we already know that E[X] is 0.5 from our conceptualisation of locations and weights. When we do the calculation, we find that
+
+\begin{align*}
+  E[X] = \int_{0}^{1}x dx = \frac{x^{2}}{2}\Big|_0^1 = 0.5.
+\end{align*}
+
+\subsection{Rules about expected values}
+
+The expected value, $E[X]$, is a \textbf{linear operator} also known as the \textbf{expectation operator}. It is linear in the sense that, for any random variables $X$ and $Y$, and constants $a$ and $b$,
+
+\begin{align}
+  E[X + Y] &= E[X] + E[Y],\\
+  E[aX + b] &= aE[X] + b,
+\end{align}
+
+whenever the right-hand side is well-defined. In general, if $g$ is a function that is not linear,
+
+\begin{align}
+  E[g(X)] \neq g(E[X])
+\end{align}
+
+For example, in general, $E[X^{2}] \neq E[X]^{2}$. The rules for expected values hold no matter what constitutes $X$ and $Y$, i.e., $X$ could be discrete, continuous, mixed discrete and continuous and the same for $Y$. Let's go through an example. Suppose you flip a coin, $X$, and simulate a uniform random number $Y$. What is the expected value of their sum. We have
+
+\begin{align*}
+  E[X + Y] &= E[X] + E[Y]\\
+  &= 0.5 + 0.5 = 1
+\end{align*}
+
+Consider a second example, in which you roll a die twice. What is the expected value of the average? If we let $X_{1}$ and $X_{2}$ be the results of the two rolls, then we have
+
+\begin{align*}
+  E\left[\frac{X_{1} + X_{2}}{2}\right] = \frac{1}{2}\left(E[X_{1}] + E[X_{2}]\right) = \frac{1}{2}\left(3.5 + 3.5\right) = 3.5
+\end{align*}
+
+using the fact that $E[X]$ for a coin toss is 3.5, as derived in the example in Section 5.1.1. Thus, we have shown that the expected value of the average of two die rolls is exactly the same as the expected value of an individual die roll. This then follows on to the idea that the expected value of the average of $N$ die rolls is also equal to 3.5. Let $X_{i}$ for $i$ = 1, 2, ..., $n$ be a collection of random variables, each from a distribution with mean $\mu$. The expected value of the sample average of the $X_{i}$ is given by
+
+\begin{align}
+  E\left[\frac{1}{n}\sum_{i=1}^{n}X_{i}\right] &= \frac{1}{n}E\left[\sum_{i=1}^{n}X_{i}\right] \\
+  &= \frac{1}{n}\sum_{i=1}^{n}E[X_{i}] \\
+  &= \frac{1}{n}\sum_{i=1}^{n}\mu = \mu
+\end{align}
+
+Therefore, the expected value of the \textbf{sample mean} is the \textbf{population mean} that it is trying to estimate. When the expected value of an estimator is equal to what it is trying to estimate, we say that the estimator is \textbf{unbiased}.
+
+\subsection{Variances and Chebyshev's Inequality}
+
+The variance of a random variable, denoted by Var(X) or $\sigma^{2}$ is a measure of spread/dispersion; it is a measure of how far a set of numbers is spread out from their average value. If $X$ is a random variable with mean $\mu$, the variance of $X$ is defined by
+
+\begin{align}
+  Var(X) = E[(X - \mu)^{2}]
+\end{align}
+
+i.e., it is the expected value of the squared deviation from $\mu$. Random variables with higher variances come from distributions that are more spread out than ones that have a lower variance. The convenient computational form of the variance for the discrete case is given by
+
+\begin{align}
+  Var(X) = E[X^{2}] - E[X]^{2}
+\end{align}
+
+which is derived from Equation (23) as follows:
+
+\begin{align*}
+  Var(X) &= E[(X - \mu)^{2}] \\
+  &= E[X^{2} - 2X\mu + \mu^{2}] \\
+  &= E[X^{2}] - 2E[X\mu] + E[\mu^{2}] \\
+  &= E[X^{2}] - 2\mu E[X] + \mu^{2} \\
+  &= E[X^{2}] - 2\mu\mu + \mu^{2} \\
+  &= E[X^{2}] - \mu^{2} \\
+  &= E[X^{2}] - E[X]^{2}
+\end{align*}
+
+For the continuous case (in which the random variable $X$ has a PDF $f(x)$), we integrate as follows:
+
+\begin{align*}
+  Var(X) &= \int(x - \mu)^{2}f(x)dx \\
+  &= \int (x^{2} - 2\mu x + \mu^{2})f(x) dx \\
+  &= \int x^{2}f(x)dx - 2\mu\int xf(x)dx + \mu^{2}\int f(x)dx \\
+  &= E[X^{2}] - 2\mu\mu + \mu^{2}(1) \\
+  &= E[X^{2}] - \mu^{2} \\
+  &= E[X^{2}] - E[X]^{2}
+\end{align*}
+
+The variance is invariant with respect to changes in a location parameter. That is, if a constant is added to all values of the variable, the variance is unchanged:
+
+\begin{align}
+  Var(X + a) = Var(X)
+\end{align}
+
+If all values are scaled by a constant, the variance is scaled by the square of that constant:
+
+\begin{align}
+  Var(aX) = a^{2}Var(X)
+\end{align}
+
+which implies that the variance operator is not a linear operator. The square root of the variance is known as the \textbf{standard deviation}, usually denoted by $\sigma$. The standard deviation has the same units as the random variable $X$. Let's go through an example of how to calculate the sample variance. What is the sample variance from the result of a toss of a die? We already know that for a die toss, $E[X]$ = 3.5, so the remaining term to calculate is $E[X^{2}]$. Using the definition in Equation (14), we have
+
+\begin{align*}
+  E[X^{2}] &= \left(1^{2} \text{ x} \ \frac{1}{6}\right) + \left(2^{2} \text{ x} \ \frac{1}{6}\right) + \left(3^{2} \text{ x} \ \frac{1}{6}\right) + \left(4^{2} \text{ x} \ \frac{1}{6}\right) + \left(5^{2} \text{ x} \ \frac{1}{6}\right) + \left(6^{2} \text{ x} \ \frac{1}{6}\right) \\
+  &= 15.17
+\end{align*}
+
+Substituting $E[X]^{2}$ and $E[X^{2}]$ into Equation (24) gives
+
+\begin{align*}
+  Var(X) &= E[X^{2}] - E[X]^{2} \\
+  &= 15.17 - 3.5^{2} \\
+  &= 2.92
+\end{align*}
+
+\section{Lecture 5: Random Vectors}
+\subsection{Random vectors and independence}
+
+\subsection{Variance Properties and Sample Variance}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\end{document}
