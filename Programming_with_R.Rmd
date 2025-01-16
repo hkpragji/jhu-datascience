@@ -7,7 +7,7 @@ output:
     toc: true
     number_sections: true
     latex_engine: xelatex
-geometry: margin=0.5in
+geometry: margin=0.75in
 fontsize: 11pt
 header-includes:
   - \usepackage{amsmath}
@@ -30,6 +30,11 @@ header-includes:
   - \usepackage[nointlimits]{esint}
   - \usepackage{titlesec}
 ---
+
+```{r setup, include = FALSE}
+library(styler)
+library(airqualityES)
+```
 
 \newpage
 \section{Introduction}
@@ -125,8 +130,8 @@ print(x)
 This is a 2x3 matrix (2 rows and 3 columns). Now consider the following nested for-loop:
 
 ```{r}
-for (i in seq_len(nrow(x))){
-  for (j in seq_len(ncol(x))){
+for (i in seq_len(nrow(x))) {
+  for (j in seq_len(ncol(x))) {
     print(x[i, j])
   }
 }
@@ -157,7 +162,7 @@ A while loop reruns a chunk while a certain condition remains true. To create a 
 
 ```{r}
 count <- 0
-while (count < 10){
+while (count < 10) {
   print(count)
   count <- count + 1
 }
@@ -186,11 +191,11 @@ N.B. You can stop a while loop by hitting Escape or by clicking on the stop-sign
 ```{r}
 z <- 5
 
-while (z >= 3 && z <= 10){
+while (z >= 3 && z <= 10) {
   print(z)
   coin <- rbinom(1, 1, 0.5)
-  
-  if (coin == 1){
+
+  if (coin == 1) {
     z <- z + 1
   } else {
     z <- z - 1
@@ -209,7 +214,9 @@ Let's run through the execution flow:
   \item If the coin is a 0, subtract 1 from the value of z.
 \end{enumerate}
 
-\subsection{Repeat, next, break}
+\subsection{Repeat, break, next, return}
+
+\subsubsection{Repeat loops}
 
 \textbf{Repeat} loops are even more basic than while loops. They will repeat a chunk of code until you tell them to stop (by hitting Escape) or until they encounter the command \textbf{break}, which will stop the loop. Repeat is not commonly used in statistical applications but they do have their uses. In the example below, we produce a repeat loop to approximate the square root of a number.
 
@@ -221,15 +228,302 @@ Newton's method is one of many known methods of computing square roots. Given a 
           &= \frac{1}{2}\left(x_{n} + \frac{a}{x_{n}}\right)
 \end{align}
 
-Suppose \emph{a} = 25 and we initialise the iteration at x$_{0}$ = 1.
+Suppose we want to find the square root of 25. Setting \emph{a} = 25, we initialise the iteration at x$_{0}$ = 1.
 
 This method iteratively improves an estimate until the desired accuracy is achieved.
 
 ```{r}
-number <- 25        # Number we want the square root of
-x0 <- 1             # Initial guess
-tolerance <- 1e-8   # Convergence criterion
+number <- 25 # Number we want the square root of
+x0 <- 1 # Initial guess
+tolerance <- 1e-8 # Convergence criterion
 
+repeat {
+  # Compute a better estimate
+  x1 <- 0.5 * (x0 + number / x0)
+
+  # Check if the improvement is small enough to stop
+  if (abs(x1 - x0) < tolerance) {
+    break
+  } else {
+    # Update the estimate the continue
+    x0 <- x1
+  }
+}
+
+cat("The approximate square root of", number, "is", x1, "\n")
 ```
 
 Let's run through the execution flow:
+
+\begin{enumerate}
+  \item Initialisation:
+    \begin{itemize}
+      \item x0: The initial guess for the square root;
+      \item tolerance: The precision we want (when we improvement between iterations is smaller than this, we stop);
+      \item number: The number whose square root we want to compute.
+    \end{itemize}
+  \item Iteration:
+    \begin{itemize}
+      \item The repeat loop executes indefinitely until a break statement is reached;
+      \item Inside the loop, a new estimate (x1) is computed using Equation (1);
+      \item The absolute difference between x1 and x0 is checked - if this difference is smaller than the tolerance, the loop stops (break). Otherwise, x0 is updated to the new estimate (x1) and the loop continues.
+    \end{itemize}
+  \item Convergence
+    \begin{itemize}
+      \item The loop repeats until the estimate stabilises within the specified tolerance.
+    \end{itemize}
+  \item Termination
+    \begin{itemize}
+      \item The break statement exits the loop when the stopping condition is met.
+    \end{itemize}
+\end{enumerate}
+
+We should exercise caution when using repeat loops, particularly in the above scenario, because there is no guarantee that it will stop. An alternative solution is to set a limit on the number of iterations by using a for-loop and then report whether convergence was achieved or not. Additionally, the performance of the repeat function directly depends on the defined tolerance, i.e., the running time of the repeat loop will be larger if the tolerance is low.
+
+\subsubsection{Next}
+
+The next statement is used to skip the current iteration of the loop without terminating the loop. Here is an example of the next statement in action:
+
+```{r}
+for (i in 1:100) {
+  if (i <= 20) {
+    # Skip the first 20 iterations
+    next
+  }
+  # Do something here
+}
+```
+
+\subsubsection{Return}
+
+The return statement is used in functions to specify the value or object that should be returned when the function finishes running; this is how a function provides its output. It can also be used to exit any of the loops we have studied previously. We will discuss the use of the return statement in more detail when we study functions in R.
+
+\subsection{Summary}
+
+\begin{itemize}
+  \item Control structures like \textbf{if}, \textbf{while}, and \textbf{for} allow you to control the flow of an R program;
+  \item Infinite loops should generally be avoided, even if they are theoretically correct;
+  \item Control structures mentioned here are primarily useful for writing programs; for command-line interactive work, the \textbf{apply} functions are more useful.
+\end{itemize}
+
+\section{Functions}
+
+Let's look at some simple examples of functions in R:
+
+```{r func1}
+add_two_values <- function(x, y) {
+  x + y
+}
+# Example
+add_two_values(2, 5)
+```
+
+```{r func2}
+print_values_above_threshold <- function(x, n = 10) {
+  use <- x > n # Returns logical operator (true/false) based on values of x and n
+  x[use] # Subset the vector x to return all values of x which match the condition above
+}
+# Example
+x <- 1:20
+print_values_above_threshold(x)
+```
+
+```{r func3}
+calculate_col_means <- function(y, removeNA = TRUE) {
+  num_cols <- ncol(y)
+  means <- numeric(num_cols)
+  for(i in 1:num_cols) {
+    means[i] <- mean(y[, i], na.rm = removeNA)
+  }
+  means
+}
+# Example
+calculate_col_means(airquality)
+```
+
+\subsection{Scoping rules}
+
+Consider the following example, in which f and g are separate functions:
+
+```{r scoping}
+y <- 10
+
+f <- function(x) {
+  y <- 2
+  y^2 + g(x)
+}
+
+g <- function(x) {
+  x*y
+}
+```
+
+With lexical scoping, the value of y in the function g is looked up in the environment in which the function was defined which, in this case, is the global environment, so the value of y is 10.
+
+With dynamic scoping, the value of y is looked up in the environment from which the function was called (sometimes referred to as the calling environment). In R, the ceiling environment is known as the parent frame. Here, the value of y would be 2.
+
+When a function is defined in the global environment and is subsequently called from the global environment, then the defining environment and the calling environment are the same. This can sometimes give the appearance of dynamic scoping:
+
+```{r dynamic_scoping}
+g <- function(x) {
+  a <- 3
+  x + a + y
+}
+
+g(2) # This will give an error because y has not been defined
+y <- 3
+g(2)
+```
+
+\section{Coding standards in R}
+
+\subsection{Introduction to coding standards}
+
+By following coding standards, R programmers can create professional, reliable, and scalable solutions, which are especially important in data science and statistical programming roles. Coding standards are crucial because they ensure the following:
+
+\begin{enumerate}
+  \item Readability
+    \begin{itemize}
+      \item Clear and consistent code is easier for others (and your future self) to read and understand.
+      \item Well-formatted code with proper naming conventions, indentation, and comments reduces cognitive load.
+    \end{itemize}
+  \item Maintainability
+    \begin{itemize}
+      \item Consistent coding practices make it easier to debug, refactor, and update code over time.
+      \item Standards reduce the risk of introducing bugs when modifying existing code.
+    \end{itemize}
+  \item Collaboration
+    \begin{itemize}
+      \item Shared standards ensure that team members can work together seamlessly.
+      \item New team members can quickly understand the codebase, reducing onboarding time.
+    \end{itemize}
+  \item Error reduction
+    \begin{itemize}
+      \item Enforcing standards can help prevent common errors, such as poorly scoped variables or inconsistent function usage.
+    \end{itemize}
+  \item Reusability
+    \begin{itemize}
+      \item Code written to a standard is often modular and structured, making it easier to reuse in other projects or contexts.
+    \end{itemize}
+  \item Documentation
+    \begin{itemize}
+      \item Adhering to standards often includes documenting functions and scripts properly. This makes it easier to understand what
+      the code does and how to use it.
+    \end{itemize}
+  \item Automation
+    \begin{itemize}
+      \item Many tools (e.g., linters, formatters) rely on coding standards to automatically check and correct code. This reduces manual effort and enforces consistency.
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Near universally accepted standards}
+
+\begin{itemize}
+  \item Indentation of code sections is required
+  \item Use <- not = for assignments
+  \item Blank spaces around symbols are required
+  \item Avoid using names that are already in use by R
+  \item Use periods to indicate classes, otherwise don't use periods in function names
+  \item Variables names must begin with an alphabetical character and must include only letters, numbers, underscores and dots
+  \item Never name a variable T or F
+  \item Avoid declaring variables that have the same names as widely used functions
+  \item Use long names for infrequently used variables (e.g. "xlog" is better than "xl").
+\end{itemize}
+
+More information on rules and standards can be found at \url{https://web.stanford.edu/class/cs109l/unrestricted/resources/google-style.html}.
+
+\section{Dates and times}
+
+R has a special way of representing dates and times, which can be helpful if you're working with data that show how something changes over time (i.e. time-series data) or if your data contain some other temporal information, like dates of birth. Here are some key notes about dates and times in R:
+
+\begin{itemize}
+  \item Dates are represented by the Date class
+  \item Times are represented by the POSIXct or the POSIXlt class
+  \item Dates are stored internally as the number of days since 1970-01-01
+  \item Times are stored internally as the number of seconds since 1970-01-01
+  \item Character strings can be coerced to Date/Time classes using the strptime function or using as.Date, as.POSIXlt, and as.POSIXct.
+\end{itemize}
+
+\section{Exercises}
+
+\textbf{\underline{Problem 1}}
+
+Consider the following function:
+
+```{r ex1}
+f <- function(x) {
+        g <- function(y) {
+                y + z
+        }
+        z <- 4
+        x + g(x)
+}
+```
+
+What value is returned if we were to then define z = 10 and run f(3)?
+
+\textbf{\underline{Solution 1}}
+
+From a mathematical perspective, we can break this function down in the following way:
+
+\begin{enumerate}
+  \item Outer function: $f(x) = x + g(x)$
+  \item Inner function: $g(y) = y + z$
+\end{enumerate}
+
+The variable $z$ is defined in the scope of the outer function $f(x)$. Therefore, assignment of $z$ outside $f(x)$ is ignored when executing f(3), since $z$ has already been defined in the \textbf{local scope} of $f(x)$. This happens in R because variables are resolved using \textbf{lexical scoping} - R will first look for the variable within the local environment (inside $f(x)$ or $g(y)$).
+
+Using this information, running f(3) gives:
+
+\begin{align*}
+  f(3) = 3 + g(3)
+\end{align*}
+
+but $g$ only takes one argument, $y$, therefore we have:
+
+\begin{align*}
+  g(3) &= 3 + z \\
+  &= 3 + 4 \\
+  &= 7
+\end{align*}
+
+Substituting the result of (2) into (1) gives 10, so f(3) = 10.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
