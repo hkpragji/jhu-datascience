@@ -1,0 +1,98 @@
+---
+title: "Debugging in RStudio"
+author: "Hiten Pragji"
+date: "`r Sys.Date()`"
+output: 
+  pdf_document:
+    toc: true
+    number_sections: true
+    latex_engine: xelatex
+geometry: margin=0.75in
+fontsize: 11pt
+header-includes:
+  - \usepackage{amsmath}
+  - \usepackage{amssymb}
+  - \usepackage{graphicx}
+  - \usepackage[numbers]{natbib}
+  - \usepackage{url}
+  - \usepackage{caption}
+  - \usepackage{notoccite}
+  - \usepackage{enumitem}
+  - \usepackage{caption}
+  - \usepackage{xcolor}
+  - \usepackage{titlesec}
+  - \usepackage{parskip}
+  - \usepackage{hyperref}
+  - \usepackage{mathtools}
+  - \usepackage{bm}
+  - \usepackage{dsfont}
+  - \usepackage{bigints}
+  - \usepackage[nointlimits]{esint}
+  - \usepackage{titlesec}
+---
+\newpage
+\section{Indications}
+
+* message: A generic notification/diagnostic message produced by the message function - execution of the function continues;
+* warning: An indication that something is wrong but not necessarily fatal - execution of the function continues
+* error: An indication that a fatal problem has occurred - execution stops
+* condition: A generic concept for indicating that something unexpected can occur - programmers can create their own conditions.
+
+\section{Debugging tools in R}
+
+The primary tools for debugging functions in R are:
+
+* traceback: prints out the function call stack after an error occurs - does nothing if there is no error;
+* debug: flags a function for "debug" mode which allows you to step through execution of a function one line at a time;
+* browser: suspends the execution of a function wherever it is called and puts the function in debug mode;
+* trace: allows you to insert debugging code into a function in specific places;
+* recover: allows you to modify the error behaviour so that you can browse the function call stack.
+
+These are interactive tools specifically designed to allow you to pick through a function. There is also the more blunt technique of inserting print/cat statements in the function.
+
+\section{Summary}
+
+* There are three main indications of a problem/condition:
+  + message
+  + warning
+  + error
+* When analysing a function with a problem, make sure you can reproduce the problem, clearly state your expectations and how the output differs from your expectation;
+* Interactive debugging tools (traceback, debug, browser, trace, recover) can be used to find problematic code in functions;
+* Debugging tools are not a substitute for thinking through the problem.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

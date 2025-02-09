@@ -1,0 +1,277 @@
+---
+title: "Simulation & Profiling"
+author: "Hiten Pragji"
+date: "`r Sys.Date()`"
+output: 
+  pdf_document:
+    toc: true
+    number_sections: true
+    latex_engine: xelatex
+geometry: margin=0.75in
+fontsize: 11pt
+header-includes:
+  - \usepackage{amsmath}
+  - \usepackage{amssymb}
+  - \usepackage{graphicx}
+  - \usepackage[numbers]{natbib}
+  - \usepackage{url}
+  - \usepackage{caption}
+  - \usepackage{notoccite}
+  - \usepackage{enumitem}
+  - \usepackage{caption}
+  - \usepackage{xcolor}
+  - \usepackage{titlesec}
+  - \usepackage{parskip}
+  - \usepackage{hyperref}
+  - \usepackage{mathtools}
+  - \usepackage{bm}
+  - \usepackage{dsfont}
+  - \usepackage{bigints}
+  - \usepackage[nointlimits]{esint}
+  - \usepackage{titlesec}
+---
+\newpage
+\section{Introduction}
+
+Learning Objectives:
+
+* Know how to call the str function on an arbitrary R object
+* Describe the difference between the "by.self" and "by.total" output produced by the R profiler
+* Know how to simulate a random normal variable with an arbitrary mean and standard deviation
+* Know how to simulate data from a normal linear model
+
+\section{The str function}
+
+The str function:
+
+* displays the internal structure of an object such as an array, list, matrix, or data frame
+* is a diagnostic function and an alternative to summary()
+* is especially well-suited to compactly display the (abbreviated) contents of (possibly nested) lists
+* displays only one for each basic structure
+
+\section{Simulation}
+\subsection{Generating random numbers}
+
+Some functions for probability distributions in R:
+
+* rnorm: Generates random normal variates with a given mean and standard deviation
+* dnorm: Evaluates the Normal probability density (with a given mean/standard deviation) at a point (or vector of points)
+* pnorm: Evaluates the cumulative distribution function (CDF) for a Normal distribution
+* rpois: Generates random Poisson variates with a given rate
+
+Probability distribution functions usually have four functions associated with them. The functions are prefixed with:
+
+* d for density
+* r for random number generation
+* p for cumulative distribution
+* q for quantile function
+
+Working with the Normal distributions requires using these four functions:
+
+* dnorm(x, mean = 0, sd = 1, log = FALSE)
+* pnorm(q, mean = 0, sd = 1, lower.tail = TRUE, log.p = FALSE)
+* qnorm(p, mean = 0, sd = 1, lower.tail = TRUE, log.p = FALSE)
+* rnorm(n, mean = 0, sd = 1)
+
+If $\Phi$ is the CDF for a standard Normal distribution, then pnorm(q) = $\Phi$(q) and qnorm(p) = $\Phi$^-1^(p).
+
+Example: Generating random numbers
+
+```{r generate_random}
+x <- rnorm(n = 10)
+x
+y <- rnorm(n = 10, mean = 20, sd = 2)
+y
+summary(y)
+```
+
+Always set the random number seed when conducting a simulation. Setting the random number seed with set.seed() ensures reproducibility. The set.seed() function sets the starting point (seed) for R's random number generator, ensuring that the sequence of random numbers generated is reproducible.
+
+Random number generation in R is deterministic and based on algorithms that produce pseudo-random numbers. By setting the seed with set.seed(), we ensure that any random process (e.g. sampling, shuffling, or generating random numbers) produces the same results each time the code is run.
+
+Example: Generating random numbers using set.seed()
+
+```{r seed}
+set.seed(1)
+rnorm(5)
+rnorm(5)
+set.seed(1)
+rnorm(5)
+```
+
+\subsection{Simulating a linear model}
+
+Suppose we want to simulate data from the following linear model
+
+\begin{align}
+  y = \beta_{0} + \beta_{1}x + \epsilon
+\end{align}
+
+where $\epsilon \sim \mathcal{N}(0, 2^{2})$. Assume $x \sim \mathcal{N}(0, 1^{2})$, $\beta_{0} = 0.5$, and $\beta_{1} = 2$.
+
+```{r sim_lin_model}
+# Set the seed for reproducibility
+set.seed(20)
+# Generate 100 random values from a standard normal distribution
+x <- rnorm(100)
+# Generate 100 random values from a normal distribution with mean 0 and sd 0
+e <- rnorm(100, 0, 2)
+# Calculate the dependent variable y based on the defined linear model
+y <- 0.5 + 2*x + e
+# Display summary statistics of the dependent variable y
+summary(y)
+# Plot the relationship between the predictor variable x and the dependent variable y
+plot(x, y)
+```
+
+Now suppose that $x$ is binary. We have
+
+```{r sim_lin_model_binary}
+set.seed(10)
+x <- rbinom(100, 1, 0.5)
+e <- rnorm(100, 0, 2)
+y <- 0.5 + 2*x + e
+summary(y)
+plot(x, y)
+```
+
+Now consider a generalised linear model. Suppose we want to simulate from a Poisson model where
+
+\begin{align}
+  Y ~ Poisson(\mu) \\
+  log \mu = \beta_{0} + \beta_{1}x
+\end{align}
+
+where $\beta_{0} = 0.5$ and $\beta_{1} = 0.3$. We need to use the rpois function for this:
+
+```{r glm}
+set.seed(1)
+x <- rnorm(100)
+log.mu <- 0.5 + 0.3*x
+y <- rpois(100, exp(log.mu))
+summary(y)
+plot(x, y)
+```
+
+\subsection{Random sampling}
+
+The sample function draws randomly from a specified set of (scalar) objects, allowing you to sample from arbitrary distributions.
+
+```{r random_sampling}
+set.seed(1)
+sample(1:10, 4)
+sample(1:10, 4)
+sample(letters, 5)
+sample(1:10) # Permutation
+sample(1:10)
+sample(1:10, replace = TRUE) # Sample with replacement
+```
+
+\subsection{Summary}
+
+* Drawing samples from specific probability distributions can be done with r functions
+* Standard distributions are built in: Normal, Poisson, Binomial, Exponential, Gamma, etc
+* The sample function can be used to draw random samples from arbitrary vectors
+* Setting the random number generator seed via set.seed is critical for reproducibility.
+
+\section{Profiling}
+
+* Profiling is a systematic way to examine how much time is spent in different parts of a program
+* It is useful when trying to optimise your code
+* Getting the biggest impact on speeding up code depends on knowing where the code spends most of its time
+
+General principles of optimisation:
+
+* Design first, then optimise
+* Remember: Premature optimisation is the root of all evil
+* Measure (collect data), don't guess
+
+Using system.time():
+
+* The system.time() function takes an arbitrary R expression as input and returns the amount of time taken to evaluate the expression
+* Computes the time (in seconds) needed to execute an expression (if there's an error, it gives the time until the error occurred)
+* Returns an object of class proc_time
+  + user time: time charged to the CPU(s) for this expression
+  + elapsed time: "wall clock" time
+* Usually, the user time and elapsed time are relatively close, for straight computing tasks
+* Elapsed time may be greater than user time if the CPU spends a lot of time waiting around
+* Elapsed time may be smaller than the user time if your machine has multiple cores/processors (and is capable of using them)
+  + Multi-threaded BLAS libraries (vecLib/Accelerate, ATLAS, ACLM, MKL)
+  + Parallel processing via the parallel package
+
+Let's compare elapsed time with user time with a few simple examples:
+
+```{r systemtime}
+# Elapsed time > user time
+system.time(readLines("https://jhsph.edu"))
+
+# Elapsed time < user time
+hilbert <- function(n) {
+  i <- 1:n
+  1 / outer(i - 1, i, "+")
+}
+x <- hilbert(1000)
+system.time(svd(x))
+
+# Elapsed time = user time
+system.time({
+  n <- 1000
+  r <- numeric(n)
+  for (i in 1:n) {
+    x <- rnorm(n)
+    r[i] <- mean(x)
+  }
+})
+```
+
+* Using system.time allows you to test certain functions or code chunks to see if they are taking excessive amounts of time
+* Assumes you already know where the problem is and can call system.time on it
+
+* The Rprof() function starts the profiler in R
+  + R must be compiled with profiler support
+* Do not use system.time and Rprof together
+* Rprof keeps track of the function call stack at regularly sampled intervals and tabulates how much time is spent in each function
+* The default sampling interval is 0.02 seconds
+
+* The summaryRprof() function summarises the output from Rprof() (otherwise it's not readable)
+* summaryRprof tabulates the R profiler output and calculates how much time is spent in which function
+* There are methods for normalising the data:
+  + "by.total" divides the time spent in each function by the total run time
+  + "by.self" does the same but first subtracts the time spent in functions above in the call stack
+
+Summary:
+
+* Rprof() runs the profiler for the performance analysis of R code
+* summaryRprof summarises the output of Rprof and gives a percentage of the time spent in each function (with two types of normalisation)
+* It is good to break your code into functions so that the profiler can give useful information about where time is being spent
+
+```{r quiz}
+set.seed(1)
+rpois(5, 2)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
