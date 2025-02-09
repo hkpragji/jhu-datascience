@@ -1,0 +1,232 @@
+---
+title: "Hospital Quality Assignment"
+author: "Hiten Pragji"
+date: "`r Sys.Date()`"
+output: 
+  pdf_document:
+    toc: true
+    number_sections: true
+    latex_engine: xelatex
+geometry: margin=0.75in
+fontsize: 11pt
+header-includes:
+  - \usepackage{amsmath}
+  - \usepackage{amssymb}
+  - \usepackage{graphicx}
+  - \usepackage[numbers]{natbib}
+  - \usepackage{url}
+  - \usepackage{caption}
+  - \usepackage{notoccite}
+  - \usepackage{enumitem}
+  - \usepackage{caption}
+  - \usepackage{xcolor}
+  - \usepackage{titlesec}
+  - \usepackage{parskip}
+  - \usepackage{hyperref}
+  - \usepackage{mathtools}
+  - \usepackage{bm}
+  - \usepackage{dsfont}
+  - \usepackage{bigints}
+  - \usepackage[nointlimits]{esint}
+  - \usepackage{titlesec}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r load-libraries, include = FALSE}
+# Load required libraries
+library(tidyr)
+library(dplyr)
+library(grid)
+library(ggplot2)
+library(moments)
+library(gridExtra)
+library(tinytex)
+```
+
+\newpage
+\section{Introduction}
+
+In this assignment, we study a small subset of data from the Hospital Compare website. On December 1, 2020, the Centers for Medicare & Medicaid Services (CMS) retired Hospital Compare and seven other healthcare quality comparison websites, consolidating their content into a single platform called \href{https://www.medicare.gov/care-compare/}{Care Compare}.
+
+The zip file for this assignment contains three files:
+
+* outcome-of-care-measures.csv: Contains information about 30-day mortality and readmission rates
+  + 47 fields
+  + Provides each hospital's risk-adjusted 30-day mortality and 30-day readmission category and rate
+for heart attacks, heart failure, and pneumonia for over 4,000 hospitals
+* hospital-data.csv: Contains information about each hospital
+* Hospital_Revised_Flatfiles.pdf: Descriptions of the variables in each file (i.e. the code book).
+
+\section{Task 1}
+
+\textbf{\underline{Plot the 30-day mortality rates for heart attack}}
+
+```{r exercise-1, include = FALSE}
+# Read dataset into data frame
+outcome <- read.csv("outcome-of-care-measures.csv", colClasses = "character")
+# Preview first few rows
+head(outcome)
+# Preview column names
+colnames(outcome)
+# Check size of dataset
+nrow(outcome)
+
+# View unique values from column: 30-day death rates from heart attack
+unique(outcome[, 11])
+
+# Create filtered data frame for numeric data
+mortality_rates <- outcome %>%
+  dplyr::select(`Hospital.30.Day.Death..Mortality..Rates.from.Heart.Attack`) %>%
+  dplyr::rename("monthly_mortality_rate" = `Hospital.30.Day.Death..Mortality..Rates.from.Heart.Attack`) %>%
+  dplyr::mutate(monthly_mortality_rate = as.numeric(monthly_mortality_rate)) %>%
+  dplyr::filter(!is.na(monthly_mortality_rate))
+
+# Calculate optimal bin width using Freedman-Diaconis rule
+w <- mortality_rates %>%
+  dplyr::select(monthly_mortality_rate) %>%
+  dplyr::summarise(
+    binwidth = (2 * IQR(monthly_mortality_rate, na.rm = TRUE)) / n()^(1 / 3)
+  ) %>%
+  dplyr::pull(binwidth)
+
+# Create summary statistics to show in ggplot
+summary_stats <- mortality_rates %>%
+  summarise(
+    Mean = mean(monthly_mortality_rate, na.rm = TRUE),
+    Median = median(monthly_mortality_rate, na.rm = TRUE),
+    SD = sd(monthly_mortality_rate, na.rm = TRUE),
+    Skewness = skewness(monthly_mortality_rate, na.rm = TRUE),
+    Kurtosis = kurtosis(monthly_mortality_rate, na.rm = TRUE),
+    Minimum = min(monthly_mortality_rate, na.rm = TRUE),
+    Maximum = max(monthly_mortality_rate, na.rm = TRUE)
+  ) %>%
+  dplyr::mutate(across(where(is.numeric), ~round(.x, 1)))
+
+summary_stats_transposed <- as.data.frame(t(summary_stats))
+
+colnames(summary_stats_transposed) <- NULL
+
+summary_table <- gridExtra::tableGrob(summary_stats_transposed)
+
+table_grob_resized <- grobWidth(summary_table) * 0.75
+table_grob_resized_height <- grobHeight(summary_table) * 0.75
+
+# Create histogram plot using ggplot2
+histogram <- ggplot2::ggplot(
+  mortality_rates,
+  ggplot2::aes(x = monthly_mortality_rate)
+) +
+  ggplot2::geom_histogram(
+    stat = "bin",
+    binwidth = w,
+    ggplot2::aes(y = after_stat(count)),
+    colour = "black",
+    fill = "lightgreen"
+  ) +
+  ggplot2::geom_density(
+    ggplot2::aes(y = after_stat(density) * length(mortality_rates$monthly_mortality_rate) * w),
+    colour = "red",
+    size = 0.25
+  ) +
+  ggplot2::scale_x_continuous(
+    expand = c(0, 0)
+  ) +
+  ggplot2::scale_y_continuous(
+    expand = c(0, 0),
+    n.breaks = 10
+  ) +
+  ggplot2::labs(
+    x = "30-day mortality rate",
+    y = "Frequency",
+    title = "Distribution of 30-day mortality rates for heart attacks"
+  ) +
+  ggplot2::theme(
+    plot.title = element_text(hjust = 0.5)
+  ) +
+  annotation_custom(
+    grob = summary_table,
+    xmin = 19, xmax = 21, ymin = 110, ymax = 235
+  )
+```
+
+```{r print-mortality-plot}
+histogram
+```
+
+\section{Task 2}
+
+\textbf{\underline{Finding the best hospital in a state}}
+
+```{r best_hospital, include = FALSE}
+best <- function(chosen_state, chosen_outcome) {
+  # Import outcome data into data frame
+  outcome_data <- read.csv("outcome-of-care-measures.csv", colClasses = "character")
+  
+  # Get unique states
+  unique_states <- unique(outcome_data$State)
+  
+  # Set unique outcomes mapping to column names
+  unique_outcomes <- c("heart attack" = "monthly_ha_mort_rate", 
+                       "heart failure" = "monthly_hf_mort_rate", 
+                       "pneumonia" = "monthly_pne_mort_rate")
+  
+  # Check that state and outcome are valid
+  if (!(chosen_state %in% unique_states)) {
+    stop("Invalid state")
+  }
+  if (!(chosen_outcome %in% names(unique_outcomes))) {
+    stop("Invalid outcome")
+  }
+  
+  # Filter dataset based on state and outcome
+  filtered_outcome_data <- outcome_data %>%
+    dplyr::rename(
+      "hospital" = Hospital.Name,
+      "state" = State,
+      "monthly_ha_mort_rate" = Hospital.30.Day.Death..Mortality..Rates.from.Heart.Attack,
+      "monthly_hf_mort_rate" = Hospital.30.Day.Death..Mortality..Rates.from.Heart.Failure,
+      "monthly_pne_mort_rate" = Hospital.30.Day.Death..Mortality..Rates.from.Pneumonia
+    ) %>%
+    dplyr::select(hospital, state, monthly_ha_mort_rate, monthly_hf_mort_rate, monthly_pne_mort_rate) %>%
+    dplyr::mutate(suppressWarnings(across(3:5, as.numeric))) %>%
+    tidyr::drop_na() %>%
+    dplyr::filter(state == chosen_state) %>%
+    # Dynamically select the outcome column based on chosen_outcome
+    dplyr::select(hospital, outcome_rate = dplyr::all_of(unique_outcomes[[chosen_outcome]])) %>%
+    dplyr::arrange(outcome_rate, hospital) %>%
+    dplyr::slice(1) %>%
+    dplyr::pull(hospital)
+  
+  filtered_outcome_data
+}
+
+# Example usage
+best("NY", "pneumonia")
+```
+
+\section{Task 3}
+
+\textbf{\underline{Ranking hospitals by outcome in a state}}
+
+\section{Task 4}
+
+\textbf{\underline{Ranking hospitals in all states}}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
