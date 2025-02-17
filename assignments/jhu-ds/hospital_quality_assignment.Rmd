@@ -160,7 +160,7 @@ histogram
 
 \textbf{\underline{Finding the best hospital in a state}}
 
-```{r best_hospital, echo = TRUE}
+```{r best-hospital, echo = TRUE}
 best <- function(chosen_state, chosen_outcome) {
   # Import outcome data into data frame
   outcome_data <- read.csv("outcome-of-care-measures.csv", colClasses = "character")
@@ -222,15 +222,18 @@ best <- function(chosen_state, chosen_outcome) {
 }
 
 # Call the function with user-defined parameters
-best("NY", "pneumonia")
+best("AK", "pneumonia")
 ```
 
 \section{Task 3}
 
 \textbf{\underline{Ranking hospitals by outcome in a state}}
 
-```{r rank_hospital, echo = TRUE}
+```{r rank-hospital, echo = TRUE}
 rankhospital <- function(selected_state, selected_outcome, num = "best") {
+  library(dplyr)
+  library(tidyr)
+  
   # Import outcome data into data frame
   data_outcome <- read.csv("outcome-of-care-measures.csv", colClasses = "character")
   
@@ -238,56 +241,52 @@ rankhospital <- function(selected_state, selected_outcome, num = "best") {
   states_unique <- unique(data_outcome$State)
   
   # Set unique outcomes mapping to column names
-  outcomes_unique <- c("heart attack" = "ha_mort_rate", 
-                       "heart failure" = "hf_mort_rate", 
-                       "pneumonia" = "pne_mort_rate")
+  outcomes_unique <- c(
+    "heart attack" = "ha_mort_rate", 
+    "heart failure" = "hf_mort_rate", 
+    "pneumonia" = "pne_mort_rate"
+  )
   
   # Check that state and outcome are valid
   if (!(selected_state %in% states_unique)) {
-    stop("Invalid state")
+    stop("invalid state")
   }
   if (!(selected_outcome %in% names(outcomes_unique))) {
-    stop("Invalid outcome")
+    stop("invalid outcome")
   }
   
   # Filter dataset based on state and outcome
   outcome_data_filtered <- data_outcome %>%
     # Rename column headers to simplify code
-    dplyr::rename(
-      "hospital" = Hospital.Name,
-      "state" = State,
-      "ha_mort_rate" = Hospital.30.Day.Death..Mortality..Rates.from.Heart.Attack,
-      "hf_mort_rate" = Hospital.30.Day.Death..Mortality..Rates.from.Heart.Failure,
-      "pne_mort_rate" = Hospital.30.Day.Death..Mortality..Rates.from.Pneumonia
+    rename(
+      hospital = Hospital.Name,
+      state = State,
+      ha_mort_rate = Hospital.30.Day.Death..Mortality..Rates.from.Heart.Attack,
+      hf_mort_rate = Hospital.30.Day.Death..Mortality..Rates.from.Heart.Failure,
+      pne_mort_rate = Hospital.30.Day.Death..Mortality..Rates.from.Pneumonia
     ) %>%
     # Select the required columns 
-    dplyr::select(
-      hospital,
-      state,
-      ha_mort_rate,
-      hf_mort_rate,
-      pne_mort_rate
-      ) %>%
-    # Convert mortality rates columns to numeric format
-    dplyr::mutate(suppressWarnings(across(3:5, as.numeric))) %>%
-    # Keep only complete rows (rows where there are no nulls)
-    tidyr::drop_na() %>%
-    # Filter state by user-defined input
-    dplyr::filter(state == selected_state) %>%
+    select(hospital, state, ha_mort_rate, hf_mort_rate, pne_mort_rate) %>%
+    # Convert mortality rates columns to numeric, suppressing warnings safely
+    mutate(across(3:5, ~ suppressWarnings(as.numeric(.)))) %>%
+    # Keep only rows where the selected outcome column is not NA
+    drop_na(outcomes_unique[[selected_outcome]]) %>%
+    # Filter by state
+    filter(state == selected_state) %>%
     # Dynamically select the outcome column based on chosen_outcome
-    dplyr::select(
-      hospital,
-      outcome_rate = dplyr::all_of(outcomes_unique[[selected_outcome]])
-      ) %>%
-    # Order by mortality rates (ascending)
-    dplyr::arrange(outcome_rate, hospital)
-  
+    select(hospital, outcome_rate = all_of(outcomes_unique[[selected_outcome]])) %>%
+    # Order by mortality rates (ascending) and hospital name
+    arrange(outcome_rate, hospital)
+
+  # Convert num to numeric if possible
+  num <- suppressWarnings(as.numeric(num))
+
   # Handle different num values
   if (num == "best") {
     return(outcome_data_filtered$hospital[1])
   } else if (num == "worst") {
     return(outcome_data_filtered$hospital[nrow(outcome_data_filtered)])
-  } else if (is.numeric(num) && num > 0 && num <= nrow(outcome_data_filtered)) {
+  } else if (!is.na(num) && num > 0 && num <= nrow(outcome_data_filtered)) {
     return(outcome_data_filtered$hospital[num])
   } else {
     return(NA)
@@ -295,12 +294,72 @@ rankhospital <- function(selected_state, selected_outcome, num = "best") {
 }
 
 # Call the function with user-defined parameters
-rankhospital("NY", "pneumonia", "worst")
+rankhospital("TX", "pneumonia", 10)
 ```
 
 \section{Task 4}
 
 \textbf{\underline{Ranking hospitals in all states}}
+
+We need to write a function named ```rankall``` that takes two arguments: an outcome name (```outcome```) and a hospital ranking (```num```). The function should return a 2-column data frame containing the hospital in each state that has the ranking specified in ```num```. For example, the function call ```rankall("heart attack", "best")``` would return a data frame containing the names of the hospitals that are the best in their respective states for 30-day heart attack death rates.
+
+```{r rank-all, echo = TRUE}
+rankall <- function(selected_outcome, num = "best") {
+  library(dplyr)
+  library(tidyr)
+  
+  # Import outcome data
+  data_outcome <- read.csv("outcome-of-care-measures.csv", colClasses = "character")
+  
+  # Define valid outcomes and corresponding column names
+  outcomes_unique <- c(
+    "heart attack" = "Hospital.30.Day.Death..Mortality..Rates.from.Heart.Attack",
+    "heart failure" = "Hospital.30.Day.Death..Mortality..Rates.from.Heart.Failure",
+    "pneumonia" = "Hospital.30.Day.Death..Mortality..Rates.from.Pneumonia"
+  )
+  
+  # Check if outcome is valid
+  if (!(selected_outcome %in% names(outcomes_unique))) {
+    stop("invalid outcome")
+  }
+  
+  # Get the corresponding column name
+  outcome_column <- outcomes_unique[[selected_outcome]]
+  
+  # Process data: select relevant columns, convert to numeric, remove NAs
+  ranked_hospitals <- data_outcome %>%
+    select(Hospital.Name, State, all_of(outcome_column)) %>%
+    mutate(outcome_rate = as.numeric(.data[[outcome_column]])) %>%
+    drop_na(outcome_rate) %>%
+    group_by(State) %>%
+    arrange(outcome_rate, Hospital.Name) %>%
+    mutate(rank = row_number()) %>%
+    ungroup()
+  
+  # Select the appropriate rank for each state
+  result <- ranked_hospitals %>%
+    group_by(State) %>%
+    filter(
+      (num == "best" & rank == 1) | 
+      (num == "worst" & rank == n()) | 
+      (is.numeric(num) & num > 0 & num <= n() & rank == num)
+    ) %>%
+    select(hospital = Hospital.Name, state = State) %>%
+    ungroup()
+  
+  # Ensure every state is represented, adding NA where needed
+  all_states <- distinct(data_outcome, State) %>%
+    rename(state = State) %>%
+    left_join(result, by = "state") %>%
+    select(hospital, state)
+  
+  return(all_states)
+}
+
+# Call the function with user-defined parameters
+r <- rankall("heart failure", 10)
+as.character(subset(r, state == "NV")$hospital)
+```
 
 
 
