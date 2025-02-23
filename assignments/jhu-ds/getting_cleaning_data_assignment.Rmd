@@ -1,0 +1,207 @@
+---
+title: "Getting and Cleaning Data"
+subtitle: "Course Project"
+author: "Hiten Pragji"
+date: "`r Sys.Date()`"
+output: 
+  pdf_document:
+    toc: true
+    number_sections: true
+    latex_engine: xelatex
+geometry: margin=0.75in
+fontsize: 11pt
+header-includes:
+  - \usepackage{amsmath}
+  - \usepackage{amssymb}
+  - \usepackage{graphicx}
+  - \usepackage[numbers]{natbib}
+  - \usepackage{url}
+  - \usepackage{caption}
+  - \usepackage{notoccite}
+  - \usepackage{enumitem}
+  - \usepackage{caption}
+  - \usepackage{xcolor}
+  - \usepackage{titlesec}
+  - \usepackage{parskip}
+  - \usepackage{hyperref}
+  - \usepackage{mathtools}
+  - \usepackage{bm}
+  - \usepackage{dsfont}
+  - \usepackage{bigints}
+  - \usepackage[nointlimits]{esint}
+  - \usepackage{titlesec}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r load-libraries, include = FALSE}
+# Load required libraries
+library(dplyr)
+library(knitr)
+library(tinytex)
+```
+
+\newpage
+\section{Introduction}
+
+One of the most exciting areas in all of data science right now is wearable computing. Companies like Fitbit, Nike, and Jawbone Up are racing to develop the most advanced algorithms to attract new users. The data linked to from the course website represent data collected from the accelerometers from the Samsung Galaxy S smartphone. A full description is available at the site where the data was obtained: \href{https://archive.ics.uci.edu/ml/datasets/Human+Activity+Recognition+Using+Smartphones}{Human Activity Recognition Using Smartphones}.
+
+Using the data provided, you should create one R script called `run_analysis.R` that does the following:
+
+1. Merges the training and the test sets to create one data set.
+2. Extracts only the measurements on the mean and standard deviation for each measurement. 
+3. Uses descriptive activity names to name the activities in the data set.
+4. Appropriately labels the data set with descriptive variable names. 
+5. From the data set in step 4, creates a second, independent tidy data set with the average of each variable for each activity and each subject.
+
+\section{Study design and dataset information}
+
+The dataset is a Human Activity Recognition database built from the recordings of 30 subjects performing activities of daily living (ADL) while carrying a waist-mounted smartphone with embedded inertial sensors.
+
+The experiments have been carried out with a group of 30 volunteers within an age bracket of 19-48 years. Each person performed six activities (WALKING, WALKING_UPSTAIRS, WALKING_DOWNSTAIRS, SITTING, STANDING, LAYING) wearing a smartphone (Samsung Galaxy S II) on the waist. Using its embedded accelerometer and gyroscope, we captured 3-axial linear acceleration and 3-axial angular velocity at a constant rate of 50Hz. The experiments have been video-recorded to label the data manually. The obtained dataset has been randomly partitioned into two sets, where 70% of the volunteers was selected for generating the training data and 30% the test data. 
+
+The sensor signals (accelerometer and gyroscope) were pre-processed by applying noise filters and then sampled in fixed-width sliding windows of 2.56 sec and 50% overlap (128 readings/window). The sensor acceleration signal, which has gravitational and body motion components, was separated using a Butterworth low-pass filter into body acceleration and gravity. The gravitational force is assumed to have only low frequency components, therefore a filter with 0.3 Hz cutoff frequency was used. From each window, a vector of features was obtained by calculating variables from the time and frequency domain.
+
+\section{Grading criteria}
+
+1. The submitted data set is tidy. 
+2. The Github repo contains the required scripts.
+3. GitHub contains a code book that modifies and updates the available codebooks with the data to indicate all the variables and summaries calculated, along with units, and any other relevant information.
+4. The README that explains the analysis files is clear and understandable.
+5. The work submitted for this project is the work of the student who submitted it.
+
+\section{Analysis}
+
+```{r run-analysis-1, cache = TRUE}
+# Create data subdirectory if it does not already exist
+if (!file.exists("./data")) {
+  dir.create("./data")
+}
+# Downlaod and extract the zip folder containing the data
+zip_file <- "./data/har_dataset.zip"
+if (!file.exists(zip_file)) {
+  data_url <- "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip"
+  download.file(data_url, destfile = zip_file, mode = "wb")
+  unzip(zip_file, exdir = "./data")
+}
+
+# List all files in the data directory
+list.files("./data/UCI HAR Dataset/", recursive = TRUE)
+```
+
+The dataset contains the following files relevant to this project:
+
+- 'README.txt'
+- 'features_info.txt': Shows information about the variables used on the feature vector.
+- 'features.txt': List of all features.
+- 'activity_labels.txt': Links the class labels with their activity name.
+- 'train/X_train.txt': Training set.
+- 'train/y_train.txt': Training labels.
+- 'test/X_test.txt': Test set.
+- 'test/y_test.txt': Test labels.
+- 'test/subject_test.txt': Subject ID for test set.
+- 'train/subject_train.txt': Subject ID for training set.
+
+```{r run-analysis-2, cache = TRUE}
+# Read test datasets into data frames
+test_x <- read.table("data/UCI HAR Dataset/test/X_test.txt")
+test_y <- read.table("data/UCI HAR Dataset/test/y_test.txt")
+test_subject <- read.table("data/UCI HAR Dataset/test/subject_test.txt")
+# Read training datasets into data frames
+train_x <- read.table("data/UCI HAR Dataset/train/X_train.txt")
+train_y <- read.table("data/UCI HAR Dataset/train/y_train.txt")
+train_subject <- read.table("data/UCI HAR Dataset/train/subject_train.txt")
+# Read features and activity label datasets into data frames
+feature_data <- read.table("data/UCI HAR Dataset/features.txt")
+activity_labels <- read.table("data/UCI HAR Dataset/activity_labels.txt")
+```
+
+```{r run-analysis-3}
+# Rename column headers appropriately
+activities <- activity_labels %>%
+  dplyr::rename(activity_id = V1, activity_type = V2)
+features <- feature_data %>%
+  dplyr::rename(activity_id = V1, activity_type = V2)
+subject_test <- test_subject %>%
+  dplyr::rename(subject_id = V1)
+subject_train <- train_subject %>%
+  dplyr::rename(subject_id = V1)
+test_y_cleaned <- test_y %>%
+  purrr::set_names(colnames(activities[1]))
+train_y_cleaned <- train_y %>%
+  purrr::set_names(colnames(activities[1]))
+```
+
+The column names of the test and training datasets (test_x and train_x) should match the variables in the `features` data frame. Currently the variables in these four data frames are labelled $V1, V2, V3, ..., Vn$ so we should rename them as follows:
+
+```{r run-analysis-4}
+# First check that the nrow(features) matches ncol(test_x) and ncol(train_x)
+feature_count <- nrow(features)
+col_count_df <- data.frame(
+  dataset = c("test_x", "test_y", "train_x", "train_y"),
+  ncols = c(ncol(test_x), ncol(test_y), ncol(train_x), ncol(train_y))
+)
+
+if (feature_count == ncol(test_x) && feature_count == ncol(train_x)) {
+  
+  test_x_cleaned <- test_x %>%
+    purrr::set_names(features$activity_type)
+
+  train_x_cleaned <- train_x %>%
+    purrr::set_names(features$activity_type)
+
+} else {
+  print("The number of observations in the features data frame does not match \n
+  the number of variables in the test/train data frames.")
+}
+```
+
+Now that we have renamed all the variables appropriately, we can proceed to merge the training and test data frames to create one data frame. We need to join To merge the training and test data frames, we can use dplyr's `inner_join` function
+
+```{r run-analysis-5}
+
+```
+
+\section{References}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
