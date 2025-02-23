@@ -134,12 +134,14 @@ train_y_cleaned <- train_y %>%
   purrr::set_names(colnames(activities[1]))
 ```
 
-The column names of the test and training datasets (test_x and train_x) should match the variables in the `features` data frame. Currently the variables in these four data frames are labelled $V1, V2, V3, ..., Vn$ so we should rename them as follows:
+The column names of the test and training datasets (test_x and train_x) should match the variables in the `features` data frame. Currently the variables in these four data frames are labelled $V1, V2, V3, ..., Vn$ so they should be renamed as follows:
 
 ```{r run-analysis-4}
 # First check that the nrow(features) matches ncol(test_x) and ncol(train_x)
-feature_count <- nrow(features)
-col_count_df <- data.frame(
+feature_count <- features %>%
+  dplyr::summarise(n = n()) %>%
+  dplyr::pull(n)
+col_count_df <- dplyr::tibble(
   dataset = c("test_x", "test_y", "train_x", "train_y"),
   ncols = c(ncol(test_x), ncol(test_y), ncol(train_x), ncol(train_y))
 )
@@ -158,10 +160,84 @@ if (feature_count == ncol(test_x) && feature_count == ncol(train_x)) {
 }
 ```
 
-Now that we have renamed all the variables appropriately, we can proceed to merge the training and test data frames to create one data frame. We need to join To merge the training and test data frames, we can use dplyr's `inner_join` function
+After renaming all the variables appropriately, the following merges should be performed:
+
+- Merge test_x_cleaned, test_y_cleaned, and subject_test (1)
+- Merge train_x_cleaned, train_y_cleaned, and subject_train (2)
+- Merge (1) and (2)
 
 ```{r run-analysis-5}
+all_test_merged <- dplyr::bind_cols(
+  test_y_cleaned,
+  subject_test,
+  test_x_cleaned,
+  .name_repair = "unique"
+)
 
+all_train_merged <- dplyr::bind_cols(
+  train_y_cleaned,
+  subject_train,
+  train_x_cleaned,
+  .name_repair = "unique"
+)
+
+ml_data <- dplyr::bind_rows(all_test_merged, all_train_merged)
+```
+
+The next task is to extract only the measurements on the mean and standard deviation for each measurement. To do this, first retrieve the column names with the words "mean" and "sd" in them using a string detection function, then index the `ml_data` data frame on those columns.
+
+```{r run-analysis-6}
+columns <- colnames(ml_data)
+mean_sd_colnames <- stringr::str_detect(columns, "activity|subject|mean(?!Freq)|std")
+ml_data_filtered <- ml_data[, mean_sd_colnames]
+```
+
+The filtered dataset now contains only the measurements on the mean and standard deviation. It also contains the activity ID, but it would be better to include another column showing the name associated with each activity ID.
+
+```{r run-analysis-7}
+ml_merged <- ml_data_filtered %>%
+  dplyr::left_join(activities,
+    by = "activity_id"
+  ) %>%
+  dplyr::relocate(
+    activity_type,
+    .after = activity_id
+  )
+```
+
+This dataset appears to be more complete now. Let's appropriately label the dataset with descriptive variable names using the following mappings:
+
+t -> time
+f -> frequency
+acc -> accelerometer
+gyro -> gyroscope
+mag -> magnitude
+
+```{r run-analysis-8}
+# View all variable names in the dataset
+colnames(ml_merged)
+# Apply transformations directly to variable names
+new_colnames <- purrr::map_chr(
+  names(ml_merged), ~ .x %>%
+    stringr::str_replace_all("^t", "time") %>%
+    stringr::str_replace_all("^f", "frequency") %>%
+    stringr::str_replace_all("Acc", "Accelerometer") %>%
+    stringr::str_replace_all("Gyro", "Gyroscope") %>%
+    stringr::str_replace_all("Mag", "Magnitude")
+)
+# Assign the new variable names to the data frame
+colnames(ml_merged) <- new_colnames
+```
+
+From the `ml_merged` dataset, let's compute the average (mean) of each variable for each activity and each subject, then export the data frame to the directory as a text file.
+
+```{r run-analysis-9}
+# Create tidy dataset
+ml_cleaned <- ml_merged %>%
+  dplyr::group_by(activity_type, subject_id) %>%
+  dplyr::summarise_all(.funs = mean)
+# Write results to file in directory
+write.table(ml_cleaned, "tidyHARdata.txt", row.names = FALSE)
 ```
 
 \section{References}
