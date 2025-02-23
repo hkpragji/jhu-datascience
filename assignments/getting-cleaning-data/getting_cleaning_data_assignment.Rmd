@@ -76,11 +76,11 @@ The sensor signals (accelerometer and gyroscope) were pre-processed by applying 
 
 ```{r run-analysis-1, cache = TRUE}
 # Create data subdirectory if it does not already exist
-if (!file.exists("./data")) {
-  dir.create("./data")
+if (!file.exists("./assignments/getting-cleaning-data/data")) {
+  dir.create("./assignments/getting-cleaning-data/data")
 }
 # Downlaod and extract the zip folder containing the data
-zip_file <- "./data/har_dataset.zip"
+zip_file <- "./assignments/getting-cleaning-data/data/har_dataset.zip"
 if (!file.exists(zip_file)) {
   data_url <- "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip"
   download.file(data_url, destfile = zip_file, mode = "wb")
@@ -88,7 +88,9 @@ if (!file.exists(zip_file)) {
 }
 
 # List all files in the data directory
-list.files("./data/UCI HAR Dataset/", recursive = TRUE)
+list.files("./assignments/getting-cleaning-data/data/UCI HAR Dataset/",
+  recursive = TRUE
+)
 ```
 
 The dataset contains the following files relevant to this project:
@@ -106,16 +108,16 @@ The dataset contains the following files relevant to this project:
 
 ```{r run-analysis-2, cache = TRUE}
 # Read test datasets into data frames
-test_x <- read.table("data/UCI HAR Dataset/test/X_test.txt")
-test_y <- read.table("data/UCI HAR Dataset/test/y_test.txt")
-test_subject <- read.table("data/UCI HAR Dataset/test/subject_test.txt")
+test_x <- read.table("assignments/getting-cleaning-data/data/UCI HAR Dataset/test/X_test.txt")
+test_y <- read.table("assignments/getting-cleaning-data/data/UCI HAR Dataset/test/y_test.txt")
+test_subject <- read.table("assignments/getting-cleaning-data/data/UCI HAR Dataset/test/subject_test.txt")
 # Read training datasets into data frames
-train_x <- read.table("data/UCI HAR Dataset/train/X_train.txt")
-train_y <- read.table("data/UCI HAR Dataset/train/y_train.txt")
-train_subject <- read.table("data/UCI HAR Dataset/train/subject_train.txt")
+train_x <- read.table("assignments/getting-cleaning-data/data/UCI HAR Dataset/train/X_train.txt")
+train_y <- read.table("assignments/getting-cleaning-data/data/UCI HAR Dataset/train/y_train.txt")
+train_subject <- read.table("assignments/getting-cleaning-data/data/UCI HAR Dataset/train/subject_train.txt")
 # Read features and activity label datasets into data frames
-feature_data <- read.table("data/UCI HAR Dataset/features.txt")
-activity_labels <- read.table("data/UCI HAR Dataset/activity_labels.txt")
+feature_data <- read.table("assignments/getting-cleaning-data/data/UCI HAR Dataset/features.txt")
+activity_labels <- read.table("assignments/getting-cleaning-data/data/UCI HAR Dataset/activity_labels.txt")
 ```
 
 ```{r run-analysis-3}
@@ -237,7 +239,18 @@ ml_cleaned <- ml_merged %>%
   dplyr::group_by(activity_type, subject_id) %>%
   dplyr::summarise_all(.funs = mean)
 # Write results to file in directory
-write.table(ml_cleaned, "tidyHARdata.txt", row.names = FALSE)
+write.table(ml_cleaned,
+            "assignments/getting-cleaning-data/tidyHARdata.txt",
+            row.names = FALSE)
+```
+
+The final step is to export all the code chunks into a .R file:
+
+```{r run-analysis-10}
+knitr::purl(
+  "assignments/getting-cleaning-data/getting_cleaning_data_assignment.Rmd",
+  output = "assignments/getting-cleaning-data/run_analysis.R"
+)
 ```
 
 \section{References}
