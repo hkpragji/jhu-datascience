@@ -27,4 +27,4 @@ The source data can be found on the UCI Machine Learning Repository [here](https
 
 ### Execution instructions
 
-The R script `run_analysis.R` was written as a reproducible analytical pipeline (RAP), therefore, it should be easy for collaborators to run the analysis on their machines. To reproduce the analysis, simply open the `run_analysis.R` file and run it. There is no need to manually download the data as the script will do it for you.
+The R script `run_analysis.R` was written as a reproducible analytical pipeline (RAP), therefore, it should be easy for collaborators to run the analysis on their machines. To reproduce the analysis, fork then clone this repository, then simply open the `run_analysis.R` file and run it. There is no need to manually download the data as the script will do it for you.
