@@ -23,8 +23,7 @@ The source data can be found on the UCI Machine Learning Repository [here](https
     -   Appropriately labelling the dataset with descriptive variable names
     -   Creating a second, independent tidy dataset with the average of each variable for each activity and subject.
 -   `tidyHARdata.txt` contains the final tidy dataset as a result of the above data cleaning and transformation.
--   `codebook.md` describes all the dataset variables and the transformations taking place in the `run_analysis.R` script.
--   `getting_cleaning_data_assignment.Rmd` documents the cleaning/transformation process and includes the code chunks which make up the `run_analysis.R` script.
+-   `codebook.Rmd` documents the cleaning/transformation process and includes the code chunks which make up the `run_analysis.R` script.
 
 ### Execution instructions
 
