@@ -1,6 +1,6 @@
 ---
 title: "Getting and Cleaning Data"
-subtitle: "Course Project"
+subtitle: "Johns Hopkins Data Science Project"
 author: "Hiten Pragji"
 date: "`r Sys.Date()`"
 output: 
@@ -32,15 +32,12 @@ header-includes:
   - \usepackage{titlesec}
 ---
 
-```{r setup, include = FALSE}
-knitr::opts_chunk$set(echo = FALSE)
-```
-
-```{r load-libraries, include = FALSE}
+```{r setup, include=FALSE}
 # Load required libraries
 library(dplyr)
 library(knitr)
 library(tinytex)
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
 ```
 
 \newpage
@@ -64,31 +61,24 @@ The experiments have been carried out with a group of 30 volunteers within an ag
 
 The sensor signals (accelerometer and gyroscope) were pre-processed by applying noise filters and then sampled in fixed-width sliding windows of 2.56 sec and 50% overlap (128 readings/window). The sensor acceleration signal, which has gravitational and body motion components, was separated using a Butterworth low-pass filter into body acceleration and gravity. The gravitational force is assumed to have only low frequency components, therefore a filter with 0.3 Hz cutoff frequency was used. From each window, a vector of features was obtained by calculating variables from the time and frequency domain.
 
-\section{Grading criteria}
-
-1. The submitted data set is tidy. 
-2. The Github repo contains the required scripts.
-3. GitHub contains a code book that modifies and updates the available codebooks with the data to indicate all the variables and summaries calculated, along with units, and any other relevant information.
-4. The README that explains the analysis files is clear and understandable.
-5. The work submitted for this project is the work of the student who submitted it.
-
 \section{Analysis}
 
-```{r run-analysis-1, cache = TRUE}
+```{r run-analysis-1}
 # Create data subdirectory if it does not already exist
-if (!file.exists("./assignments/getting-cleaning-data/data")) {
-  dir.create("./assignments/getting-cleaning-data/data")
+if (!file.exists(here::here("./assignments/getting-cleaning-data/data"))) {
+  dir.create(here::here("./assignments/getting-cleaning-data/data"))
 }
 # Downlaod and extract the zip folder containing the data
-zip_file <- "./assignments/getting-cleaning-data/data/har_dataset.zip"
+zip_file <- here::here("./assignments/getting-cleaning-data/data/har_dataset.zip")
 if (!file.exists(zip_file)) {
-  data_url <- "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip"
+  data_url <- paste0("https://d396qusza40orc.cloudfront.net/getdata%,
+                     2Fprojectfiles%2FUCI%20HAR%20Dataset.zip")
   download.file(data_url, destfile = zip_file, mode = "wb")
   unzip(zip_file, exdir = "./data")
 }
 
 # List all files in the data directory
-list.files("./assignments/getting-cleaning-data/data/UCI HAR Dataset/",
+list.files(here::here("./assignments/getting-cleaning-data/data/UCI HAR Dataset/"),
   recursive = TRUE
 )
 ```
@@ -106,18 +96,50 @@ The dataset contains the following files relevant to this project:
 - 'test/subject_test.txt': Subject ID for test set.
 - 'train/subject_train.txt': Subject ID for training set.
 
-```{r run-analysis-2, cache = TRUE}
+```{r run-analysis-2}
 # Read test datasets into data frames
-test_x <- read.table("assignments/getting-cleaning-data/data/UCI HAR Dataset/test/X_test.txt")
-test_y <- read.table("assignments/getting-cleaning-data/data/UCI HAR Dataset/test/y_test.txt")
-test_subject <- read.table("assignments/getting-cleaning-data/data/UCI HAR Dataset/test/subject_test.txt")
+test_x <- read.table(
+  here::here(
+    "assignments/getting-cleaning-data/data/UCI HAR Dataset/test/X_test.txt"
+    )
+  )
+test_y <- read.table(
+  here::here(
+    "assignments/getting-cleaning-data/data/UCI HAR Dataset/test/y_test.txt"
+    )
+  )
+test_subject <- read.table(
+  here::here(
+    "assignments/getting-cleaning-data/data/UCI HAR Dataset/test/subject_test.txt"
+    )
+  )
 # Read training datasets into data frames
-train_x <- read.table("assignments/getting-cleaning-data/data/UCI HAR Dataset/train/X_train.txt")
-train_y <- read.table("assignments/getting-cleaning-data/data/UCI HAR Dataset/train/y_train.txt")
-train_subject <- read.table("assignments/getting-cleaning-data/data/UCI HAR Dataset/train/subject_train.txt")
+train_x <- read.table(
+  here::here(
+    "assignments/getting-cleaning-data/data/UCI HAR Dataset/train/X_train.txt"
+    )
+  )
+train_y <- read.table(
+  here::here(
+    "assignments/getting-cleaning-data/data/UCI HAR Dataset/train/y_train.txt"
+    )
+  )
+train_subject <- read.table(
+  here::here(
+    "./assignments/getting-cleaning-data/data/UCI HAR Dataset/train/subject_train.txt"
+    )
+  )
 # Read features and activity label datasets into data frames
-feature_data <- read.table("assignments/getting-cleaning-data/data/UCI HAR Dataset/features.txt")
-activity_labels <- read.table("assignments/getting-cleaning-data/data/UCI HAR Dataset/activity_labels.txt")
+feature_data <- read.table(
+  here::here(
+    "assignments/getting-cleaning-data/data/UCI HAR Dataset/features.txt"
+    )
+  )
+activity_labels <- read.table(
+  here::here(
+    "assignments/getting-cleaning-data/data/UCI HAR Dataset/activity_labels.txt"
+    )
+  )
 ```
 
 ```{r run-analysis-3}
@@ -168,7 +190,7 @@ After renaming all the variables appropriately, the following merges should be p
 - Merge train_x_cleaned, train_y_cleaned, and subject_train (2)
 - Merge (1) and (2)
 
-```{r run-analysis-5}
+```{r run-analysis-5, message=FALSE}
 all_test_merged <- dplyr::bind_cols(
   test_y_cleaned,
   subject_test,
@@ -209,12 +231,12 @@ ml_merged <- ml_data_filtered %>%
 
 This dataset appears to be more complete now. Let's appropriately label the dataset with descriptive variable names using the following mappings:
 
-t -> time
-f -> frequency
-acc -> accelerometer
-gyro -> gyroscope
-mag -> magnitude
-
+- t -> time
+- f -> frequency
+- acc -> accelerometer
+- gyro -> gyroscope
+- mag -> magnitude
+\\ \\
 ```{r run-analysis-8}
 # View all variable names in the dataset
 colnames(ml_merged)
@@ -240,22 +262,94 @@ ml_cleaned <- ml_merged %>%
   dplyr::summarise_all(.funs = mean)
 # Write results to file in directory
 write.table(ml_cleaned,
-            "assignments/getting-cleaning-data/tidyHARdata.txt",
+            here::here("assignments/getting-cleaning-data/tidyHARdata.txt"),
             row.names = FALSE)
 ```
 
 The final step is to export all the code chunks into a .R file:
 
-```{r run-analysis-10}
-knitr::purl(
-  "assignments/getting-cleaning-data/getting_cleaning_data_assignment.Rmd",
-  output = "assignments/getting-cleaning-data/run_analysis.R"
-)
+```{r run-analysis-10, echo = TRUE}
+# knitr::purl(here::here("assignments/getting-cleaning-data/codebook.Rmd"),
+#   output = "assignments/getting-cleaning-data/run_analysis.R"
+# )
 ```
+
+\section{Structure and contents of dataset}
+
+\subsection{Dataset structure}
+
+The `str()` function compactly displays the structure of the `ml_cleaned` data frame, including variable names, types, and the first few values.
+
+```{r structure}
+dplyr::glimpse(ml_cleaned)
+```
+
+\subsection{Variables}
+
+There are 69 variables in the `ml_cleaned` dataset:
+
+```{r variables}
+colnames(ml_cleaned)
+```
+
+The dataset includes various measurements from the accelerometer and gyroscope sensors, both in the time and frequency domains. Below is a summary of the key variable groups:
+
+\textbf{\underline{Time Domain Variables}}
+
+These variables represent measurements taken in the time domain, including accelerometer, gyroscope, and jerk signals. Each set of variables corresponds to mean and standard deviation values across different axes (X, Y, Z), or the magnitude of the signals.
+
+Examples:
+\begin{itemize}
+  \item timeBodyAccelerometer-mean()-X: Mean accelerometer value on the X-axis.
+  \item timeBodyAccelerometer-std()-Y: Standard deviation of accelerometer on the Y-axis.
+  \item timeBodyGyroscope-mean()-Z: Mean gyroscope value on the Z-axis.
+  \item timeBodyGyroscopeJerk-std()-Z: Standard deviation of gyroscope jerk on the Z-axis.
+\end{itemize}
+
+\textbf{\underline{Gravity and Jerk Variables}}
+
+These variables capture the gravity component and the jerk (rate of change of acceleration) of the signals from the accelerometer, with both mean and standard deviation calculations for each axis.
+
+Examples:
+\begin{itemize}
+  \item timeGravityAccelerometer-mean()-X: Mean gravity accelerometer value on the X-axis.
+  \item timeBodyAccelerometerJerk-mean()-Y: Mean jerk from the accelerometer on the Y-axis.
+\end{itemize}
+
+\textbf{\underline{Magnitude Variables}}
+
+These variables represent the magnitude of the accelerometer, gyroscope, and their respective jerk signals. They include both the mean and standard deviation values.
+
+Examples:
+\begin{itemize}
+  \item timeBodyAccelerometerMagnitude-mean(): Mean of accelerometer magnitude.
+  \item timeBodyGyroscopeJerkMagnitude-std(): Standard deviation of gyroscope jerk magnitude.
+\end{itemize}
+
+\textbf{\underline{Frequency Domain Variables}}
+
+These variables represent the measurements in the frequency domain after applying the Fast Fourier Transform (FFT) to the time-domain signals. They include the mean and standard deviation values for accelerometer, gyroscope, and their jerk signals.
+
+Examples:
+\begin{itemize}
+  \item frequencyBodyAccelerometer-mean()-X: Mean value of accelerometer in the frequency domain on the X-axis.
+  \item frequencyBodyGyroscope-std()-Y: Standard deviation of gyroscope in the frequency domain on the Y-axis.
+  \item frequencyBodyAccelerometerMagnitude-std(): Standard deviation of accelerometer magnitude in the frequency domain.
+\end{itemize}
+
+\textbf{\underline{Frequency Domain Magnitude and Jerk}}
+
+These are the frequency domain equivalents of the magnitude and jerk measurements. They contain mean and standard deviation calculations, reflecting the frequency-domain characteristics of these signals.
+
+Examples:
+\begin{itemize}
+  \item frequencyBodyBodyAccelerometerJerkMagnitude-mean(): Mean of the accelerometer jerk magnitude in the frequency domain.
+  \item frequencyBodyBodyGyroscopeJerkMagnitude-std(): Standard deviation of the gyroscope jerk magnitude in the frequency domain.
+\end{itemize}
 
 \section{References}
 
-
+[1] Reyes-Ortiz, J., Anguita, D., Ghio, A., Oneto, L., & Parra, X. (2013). Human Activity Recognition Using Smartphones [Dataset]. UCI Machine Learning Repository. https://doi.org/10.24432/C54S4K.
 
 
 
