@@ -9,3 +9,5 @@
 *.log
 notes/r4ds/data_transformation_cache/
 assignments/getting-cleaning-data/getting_cleaning_data_assignment_cache
+assignments/getting-cleaning-data/codebook_cache
+assignments/getting-cleaning-data/data
