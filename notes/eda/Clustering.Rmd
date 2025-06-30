@@ -1,0 +1,153 @@
+---
+title: "Cluster Analysis"
+subtitle: "an unsupervised learning technique"
+author: "Hiten Pragji"
+date: "`r Sys.Date()`"
+output: 
+  pdf_document:
+    toc: true
+    number_sections: true
+    latex_engine: xelatex
+geometry: margin=0.75in
+fontsize: 11pt
+header-includes:
+  - \usepackage{amsmath}
+  - \usepackage{amssymb}
+  - \usepackage{graphicx}
+  - \usepackage[numbers]{natbib}
+  - \usepackage{url}
+  - \usepackage{caption}
+  - \usepackage{notoccite}
+  - \usepackage{enumitem}
+  - \usepackage{caption}
+  - \usepackage{xcolor}
+  - \usepackage{titlesec}
+  - \usepackage{parskip}
+  - \usepackage{hyperref}
+  - \usepackage{mathtools}
+  - \usepackage{bm}
+  - \usepackage{dsfont}
+  - \usepackage{bigints}
+  - \usepackage[nointlimits]{esint}
+  - \usepackage{titlesec}
+---
+\clearpage
+\section{Stastical learning: a short introduction}
+
+*Statistical learning* refers to a vast set of tools for *understanding data*. These tools can be classified as *supervised* or *unsupervised*. Broadly speaking, supervised statistical learning involves building a statistical model for predicting or estimating an *output* based on one or more *inputs*. Problems of this nature occur in fields as diverse as business, medicine, astrophysics, and public policy. With unsupervised statistical learning, there are inputs but no supervising output; nevertheless, we can learn relationships and structure from such data.
+
+\section{Introduction to unsupervised learning}
+
+Unsupervised learning refers to a diverse set of techniques for answering questions such as:
+
+* Is there an informative way to visualise the data?
+* Can we discover subgroups among the variables or among the observations?
+
+Unsupervised learning is often much more challenging than supervised learning. The exercise tends to be more subjective, and there is no simple goal for the analysis, such as prediction of a response. Unsupervised learning is often performed as part of an *exploratory data analysis*. Furthermore, it can be hard to assess the results obtained from unsupervised learning methods, since there is no universally accepted mechanism for performing cross-validation or validating results on an independent data set. The reason for this is simple. If we fit a predictive model using a supervised learning technique, then it is possible to *check our work* by seeing how well our model predicts the response $Y$ on observations not used in fitting the model. However, in unsupervised learning, there is no way to check our work because we don't know the true answer - the problem is *unsupervised*.
+
+Techniques for unsupervised learning are of growing importance in a number of fields. Here are some examples:
+
+* A cancer researcher might assay gene expression levels in 100 patients with breast cancer. They might then look for subgroups among the breast cancer samples, or among the genes, in order to obtain a better understanding of the disease.
+* An online shopping site might try to identify groups of shoppers with similar browsing the purchase histories, as well as items that are of particular interest to the shoppers within each group. Then an individual shopper can be preferentially shown the items in which he or she is particularly likely to be interested, based on the purchase histories of similar shoppers.
+* A search engine might choose which search results to display to a particular individual based on the click histories of other individuals with similar search patterns.
+
+In this document, we will focus on the type of unsupervised learning known as *clustering*, a broad class of methods for discovering unknown subgroups in data.\cite{james2013introduction}
+
+\section{Cluster Analysis}
+
+\subsection{Introduction}
+
+*Clustering* refers to a very broad set of techniques for finding *subgroups*, or *clusters*, in a data set. When we cluster the observations of a data set, we seek to partition them into distinct groups so that the observations within each group are quite similar to each other, while observations in different groups are quite different from each other. Of course, to make this concrete, we must define what it means for two or more observations to be *similar* or *different*. Indeed, this is often a domain-specific consideration that must be made based on knowledge of the data being studied.
+
+Suppose that we have a set of $n$ observations, each with $p$ features. The $n$ observations could correspond to tissue samples for patients with breast cancer, and the $p$ features could correspond to measurements collected for each tissue sample; these could be clinical measurements, such as tumour stage or grade, or they could be gene expression measurements.
+
+We may have a reason to believe that there is some heterogeneity among the $n$ tissue samples; for instance, perhaps there are a few different *unknown* subtypes of breast cancer. Clustering could be used to find these subgroups. This is an unsupervised problem because we are trying to discover structure - in this case, distinct clusters - on the basis of a data set. The goal in supervised problems, on the other hand, is to try to predict some outcome vector such as survival time or response to drug treatment.
+
+Another application of clustering arises in marketing. We may have access to a large number of measurements (e.g. median household income, occupation, distance from nearest urban area, and so forth) for a large number of people. Our goal is to perform *market segmentation* by identifying subgroups of people who might be more receptive to a particular form of advertising, or more likely to purchase a particular product. The task of performing market segmentation amounts to clustering the people in the data set.\cite{james2013introduction}
+
+It is important to note that clustering is a fundamentally different kind of task than classification or regression. In particular, both classification and regression are *supervised* tasks where there is a *response variable* (a category label or value), and we have examples of past data with labels/values that help us predict those of future data. By contrast, clustering is an *unsupervised* task, as we are trying to understand and examine the structure of data without any response variable labels or values to help us.\cite{timbers2024data}
+
+Since clustering is popular in many fields, there exist a great number of clustering methods. We will focus on the two best-known clustering approaches: *$K$-means clustering* and *hierarchical clustering*.
+
+\subsection{Learning objectives}
+
+By the end of this lesson, we should be able to:
+
+* Describe a situation in which clustering is an appropriate technique to use, and what insight it might extract from the data;
+* Explain the $K$-means clustering algorithm;
+* Interpret the output of a $K$-means analysis;
+* Differentiate between clustering, classification, and regression;
+* Identify when it is necessary to scale variables before clustering, and do this using R;
+* Perform $K$-means clustering in R using `tidymodels` workflows;
+* Use the elbow method to choose the number of clusters for $K$-means;
+* Visualise the output of $K$-means clustering in R using coloured scatter plots;
+* Describe the advantages, limitations and assumptions of the $K$-means clustering algorithm.
+
+\subsection{Definition}
+
+$K$-means clustering is a simple and elegant approach for partitioning a data set into $K$ distinct, non-overlapping clusters. To perform $K$-means clustering, we must first specify the desired number of clusters $K$; then the $K$-means algorithm will assign each observation to exactly one of the $K$ clusters. Figure 1 shows the results obtained from performing $K$-means clustering on a simulated example consisting of 150 observations in two dimensions, using three different values of $K$.
+
+\begin{figure}[!b]
+  \centering
+  \includegraphics[width=5in,height=3in]{kmeans.png}
+  \caption{Fig. 1. A simulated data set with 150 observations in 2D space. Panels show the results of applying $K$-means clustering with different values of $K$. The colour of each observation indicates the cluster to which it was assigned using the $K$-means algorithm.}
+\end{figure}
+
+The $K$-means clustering procedure results from a single and intuitive mathematical problem. We begin by defining some notation. Let $C_{1}, ..., C_{k}$ denote sets containing the indices of the observations in each cluster. These sets satisfy two properties:
+
+1. $C_{1} \cup C_{2} \cup ... \cup C_{k}$ = ${1, ..., n}$. In other words, each observation belongs to at least one of the $K$ clusters.
+2. $C_{k} \cap C_{k'} = \emptyset$ for all $k \neq k'$. In other words, the clusters are non-overlapping: no observation belongs to more than one cluster.
+
+For instance, if the $i$th observation is in the $k$th cluster, then $i \in C_{k}$. The idea behind $K$-means clustering is that a *good* clustering is one for which the *within-cluster variation* is as small as possible. The within-cluster variation for cluster $C_{k}$ is a measure $W(C_{k})$ of the amount by which the observations within a cluster differ from each other. Hence we want to solve the problem
+
+\begin{align}
+  \underset{C_{1}, \ldots, C_{K}}{\text{minimise}}\left\{\sum_{k=1}^{K} W(C_{k})  \right\}
+\end{align}
+
+In words, this formula says that we want to partition the observations into $K$ clusters such that the total within-cluster variation, summed over all $K$ clusters, is as small as possible.
+
+Solving Equation (1) seems like a reasonable idea, but in order to make it actionable we need to *define* the within-cluster variation. There are many possible ways to define this concept, but by far the most common choice involves *squared Euclidean distance*. That is, we define
+
+\begin{align}
+  W(C_{k}) = \frac{1}{|C_{k}|} \sum_{i, i' \in C_{k}} \sum_{j=1}^{p}(x_{ij} - x_{i'j})^{2}
+\end{align}
+
+where
+
+\begin{itemize}
+  \item $|C_{k}|$ is the number of observations in the $k$th cluster;
+  \item $x_{ij}$ is the $j$th feature of the $i$th data point in the data set;
+  \item $x_{i'j}$ is the $j$th feature of the $i'$th data point in the same cluster;
+  \item $i, i \in C_{k}$: both $i$ and $i'$ are indices for data points in cluster $C_{k}$; and
+  \item $p$ is the number of features (dimensions) in each data point.
+\end{itemize}
+
+In other words, the within-cluster variation for the $k$th cluster is the sum of all of the pairwise squared Euclidean distances between the observations in the $k$th cluster, divided by the total number of observations in the $k$th cluster.
+
+As an aside, it is important to mention that the squared Euclidean distance is of central importance in statistics, where it is used in the method of *least squares*, a standard method of fitting statistical estimates to data by minimising the average of the squared distances between observed and estimated values, and as the simplest form of *divergence* to compare probability distributions.
+
+\underline{Why are the indices different?}
+
+The formula computes the **sum of squared Euclidean distances** between **all pairs of points** ($x_{i}, x_{i'}$) in the cluster, hence we have two separate indices: $i$ and $i'$, both running over the members of cluster $C_{k}$, and for each pair, it sums over all features $j$. The indices $ij$ and $i'j$ refer to two **different points** in the **same cluster**.
+
+\underline{What is a feature?}
+
+A **feature**, often denoted by the index $j$, is a **measurable property** or **characteristic** of a data point. Think of the data set as a **matrix**, where the rows ($i$) represent individual data points (e.g. people, samples, customers) and columns ($j$) represent features (e.g. age, income, blood pressure, etc.). 
+
+\clearpage
+\bibliographystyle{IEEEtranN}
+\bibliography{Clustering.bib}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
