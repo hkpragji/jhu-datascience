@@ -1,0 +1,35 @@
+---
+title: ""
+subtitle: ""
+author: "Hiten Pragji"
+date: "`r Sys.Date()`"
+output: 
+  pdf_document:
+    toc: true
+    number_sections: true
+    latex_engine: xelatex
+geometry: margin=0.75in
+fontsize: 11pt
+header-includes:
+  - \usepackage{amsmath}
+  - \usepackage{amssymb}
+  - \usepackage{graphicx}
+  - \usepackage[numbers]{natbib}
+  - \usepackage{url}
+  - \usepackage{caption}
+  - \usepackage{notoccite}
+  - \usepackage{enumitem}
+  - \usepackage{caption}
+  - \usepackage{xcolor}
+  - \usepackage{titlesec}
+  - \usepackage{parskip}
+  - \usepackage{hyperref}
+  - \usepackage{mathtools}
+  - \usepackage{bm}
+  - \usepackage{dsfont}
+  - \usepackage{bigints}
+  - \usepackage[nointlimits]{esint}
+  - \usepackage{titlesec}
+---
+
+
