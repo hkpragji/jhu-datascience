@@ -175,7 +175,7 @@ ggplot2::ggplot(
   ggplot2::labs(
     title = bquote("Simulated Exponential PDF (" * lambda == 1 * ")"),
     x = "x",
-    y = "f(x)"
+    y = expression(f(x))
   ) +
   ggplot2::theme(
     plot.title = element_text(hjust = 0.5)
@@ -206,13 +206,37 @@ and the theoretical variance is given by
   &= 0.625
 \end{align}
 
-```{r exp-sims}
+Using the `rexp` function, we run 1000 simulations, each generating a sample from an exponential distribution. The `rexp` function takes two arguments: the number of samples, $n$, and the rate parameter $\lambda$.
+
+```{r exp-sims, echo = TRUE}
 # Set seed for reproducibility
 set.seed(100)
 # Set parameters
-lambda <- 1
+lambda <- 0.2
 n_sample <- 40
 n_sims <- 1000
+# Run 1000 simulations each generating 40 exponential random variables
+df_sim <- data.frame(
+  vals = c(replicate(n_sims, rexp(n = n_sample, rate = lambda)))
+)
+# Plot empirical distribution of simulated random numbers
+ggplot2::ggplot(df_sim, aes(vals)) +
+  ggplot2::geom_histogram(
+    aes(y = ..density..),
+    binwidth = 0.75,
+    col = "black",
+    fill = "lightgreen",
+    alpha = 0.5
+  ) +
+  ggplot2::scale_x_continuous(expand = c(0, 0)) +
+  ggplot2::scale_y_continuous(expand = c(0, 0), limits = c(0, NA)) +
+  ggplot2::labs(
+    title = bquote("Empirical exponential distribution (" * lambda == 0.2 * ")"),
+    x = "x",
+    y = expression(f(x))
+  ) +
+  ggplot2::theme(plot.title = element_text(hjust = 0.5))
+
 ```
 
 \section{Sample mean versus theoretical mean}
