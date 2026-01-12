@@ -228,7 +228,7 @@ ggplot2::ggplot(df_sim, aes(vals)) +
     fill = "lightgreen",
     alpha = 0.5
   ) +
-  ggplot2::scale_x_continuous(expand = c(0, 0)) +
+  ggplot2::scale_x_continuous(expand = c(0, 0), n.breaks = 10) +
   ggplot2::scale_y_continuous(expand = c(0, 0), limits = c(0, NA)) +
   ggplot2::labs(
     title = bquote("Empirical exponential distribution (" * lambda == 0.2 * ")"),
