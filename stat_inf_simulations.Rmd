@@ -231,19 +231,45 @@ ggplot2::ggplot(df_sim, aes(vals)) +
   ggplot2::scale_x_continuous(expand = c(0, 0), n.breaks = 10) +
   ggplot2::scale_y_continuous(expand = c(0, 0), limits = c(0, NA)) +
   ggplot2::labs(
-    title = bquote("Empirical exponential distribution (" * lambda == 0.2 * ")"),
+    title = bquote("Empirical exponential distribution (n = 40) (" * lambda == 0.2 * ")"),
     x = "x",
     y = expression(f(x))
   ) +
   ggplot2::theme(plot.title = element_text(hjust = 0.5))
-
 ```
 
-\section{Sample mean versus theoretical mean}
+\subsection{Sample mean versus theoretical mean}
 
-\section{Sample variance versus theoretical variance}
+```{r mean-comparison}
+# Run 1000 simulations each generating the mean of 40 exponential random variables
+df_sim_means <- data.frame(
+  vals = c(replicate(n_sims, mean(rexp(n = n_sample, rate = lambda))))
+)
+# Plot the empirical distribution of sample means
+ggplot2::ggplot(df_sim_means, aes(vals)) +
+  ggplot2::geom_histogram(
+    aes(y = ..density..),
+    binwidth = 0.20,
+    col = "black",
+    fill = "lightblue",
+    alpha = 0.5
+  ) +
+  ggplot2::scale_x_continuous(expand = c(0, 0), n.breaks = 10) +
+  ggplot2::scale_y_continuous(expand = c(0, 0), limits = c(0, NA)) +
+  ggplot2::labs(
+    title = bquote("Empirical distribution of means (n = 40) (" * lambda == 0.2 * ")"),
+    x = "x",
+    y = expression(f(x))
+  ) +
+  ggplot2::theme(plot.title = element_text(hjust = 0.5))
+```
 
-\section{Distribution}
+\subsection{Sample variance versus theoretical variance}
+
+```{r variance-comparison}
+```
+
+\subsection{Distribution}
 
 
 
