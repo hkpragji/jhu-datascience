@@ -2,13 +2,13 @@
 title: "Part I: Simulation Exercise"
 subtitle: "for the Statistical Inference Course Project"
 author: "Hiten Pragji"
-date: "`r Sys.Date()`"
+date: "`r format(Sys.Date(), '%d-%m-%Y')`"
 output: 
   pdf_document:
     toc: false
     number_sections: true
     latex_engine: xelatex
-geometry: margin=0.50in
+geometry: margin=0.45in
 fontsize: 10pt
 header-includes:
   - \usepackage{amsmath}
@@ -30,6 +30,8 @@ header-includes:
   - \usepackage{bigints}
   - \usepackage[nointlimits]{esint}
   - \usepackage{titlesec}
+  - \titleformat*{\section}{\large\bfseries}
+  - \titleformat*{\subsection}{\normalsize\bfseries}
 ---
 
 ```{r setup, echo = FALSE, message = FALSE, warning = FALSE}
@@ -40,52 +42,13 @@ library(ggplot2)
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 ```
 
-\section{Introduction}
+\section{Overview}
 
-\subsection{Aims}
+In this project, we investigate the behaviour of the exponential distribution and the effect of averaging multiple exponential random variables using simulations in R. We will use the simulations to show that the distribution of multiple exponential random variables is approximately Gaussian, with a mean and standard deviation close to the theoretical values, illustrating the Central Limit Theorem.
 
-In this simulation project, we investigate the behaviour of the exponential distribution and the effect of averaging multiple exponential random variables using simulations in R. We will use the simulations to show that the distribution of multiple exponential random variables is approximately Gaussian, with a mean and standard deviation close to the theoretical values, illustrating the Central Limit Theorem. We aim to:
+The **exponential distribution** is a continuous probability distribution used to model the time between two successive events from a **Poisson** distribution with mean $\lambda$. It is defined by the average number of events within a unit interval and is usually written as $X \sim \text{exp}(\lambda)$. Examples of situations that can be modelled with the exponential distribution include the time between phone calls received, the decay time of an unstable particle, and the time until a random mutation occurs.
 
-1. Show the sample mean and compare it to the theoretical mean of the distribution;
-2. Show how variable the sample is (via variance) and compare it to the theoretical variance of the distribution;
-3. Show that the distribution is approximately normal.
-
-\subsection{Primer on the exponential distribution}
-
-The **exponential distribution** is a continuous probability distribution used to model the time between two successive events from a **Poisson** distribution with mean $\lambda$. It is defined by the average number of events within a unit interval and is usually written as $X \sim exp(\lambda)$. Examples of situations that can be modelled with the exponential distribution include:
-
-\begin{itemize}
-  \item Time between phone calls received;
-  \item Time between collisions of particles in a gas;
-  \item Decay time of an unstable particle;
-  \item Time until a random mutation occurs.
-\end{itemize}
-
-The conditions required for a situation to be modelled with the exponential distribution are the same as for the Poisson distribution;
-
-\begin{itemize}
-  \item Events occur independently;
-  \item The average rate at which events occur is constant;
-  \item Events occur one at a time.
-\end{itemize}
-
-The main characteristics of processes described by the exponential distribution is lack of memory, i.e., processes which are not influenced by their history. For instance, the decay probability of an unstable particle is independent of its age, or the scattering probability for a gas molecule at time $t$ is independent of $t$ and of the time that has passed since the last scattering event.
-
-\subsection{Probability density function}
-
-If the average rate (number of events per unit interval) at which events occur is $\lambda$ then on average there are $\lambda x$ events in interval $x$, so that from the Poisson distribution the probability that there will be no events in this interval is given by
-
-\begin{align}
-  \mathbb{P}\text{(no events in interval x)} = e^{-\lambda x}
-\end{align}
-
-The probability that an event occurs in the next infinitesimal interval $[x, x + dx]$ is given by $\lambda dx$, so that
-
-\begin{align}
-  \mathbb{P}(\text{first event occurs in interval } [x, x + dx]) = e^{-\lambda x}\lambda dx.
-\end{align}
-
-Hence the required probability density function (PDF) is given by
+The probability density function (PDF) for the exponential distribution is given by
 
 \begin{align}
   f(x) =
@@ -95,61 +58,15 @@ Hence the required probability density function (PDF) is given by
     \end{cases}
 \end{align}
 
-\subsection{Cumulative distribution function}
-
-The quantity $\mathbb{P}(\text{no events in [0, x])} \equiv F(x)$ is called the cumulative distribution function (CDF) for the exponential distribution. This is given by
-
-\begin{align}
-  F(x) = 1 - \mathbb{P}(\text{no events in } [0, x]) \\
-  &= \int_{0}^{x}\lambda e^{\lambda x} dx \\
-  &= 1 - e^{-\lambda x}
-\end{align}
-
-More formally, we have
-
-\begin{align}
-  F(x) = \mathbb{P}(X \leq x) = 
-    \begin{cases}
-      1 - e^{-\lambda x}, & x \geq 0 \\
-      0, & \text{otherwise}
-    \end{cases}
-\end{align}
-
-\subsection{Mean and variance of the exponential distribution}
-
-The expected value of an exponentially distributed random variable X is given by
-
-\begin{align}
-  E(X) = \int_{0}^{\infty} x \lambda e^{-\lambda x} dx
-\end{align}
-
-Using integration by parts, we find that the expected value is
-
-\begin{align}
-  E(X) = \frac{1}{\lambda}
-\end{align}
-
-and the variance is
-
-\begin{align}
-  Var(X) = \frac{1}{\lambda^{2}}
-\end{align}
-
-As with the Poisson distribution, the mean and the standard deviation of the exponential distribution both equal $1/\lambda$.
+The expected value of an exponentially distributed random variable X is given by $E(X) = 1/\lambda$ and the variance is $\text{Var}(X) = 1/\lambda^{2}$. As with the Poisson distribution, the mean and the standard deviation of the exponential distribution both equal $1/\lambda$.
 
 \section{Visualising the exponential distribution}
 
-Let's begin by visualising the PDF of the exponential function for $\lambda = 1$ based on 1000 simulations.
+We can easily see that the PDF is given by an exponential decay function scaled by the rate parameter $\lambda$.
 
-```{r plot-exp-dist}
-y_rexp <- data.frame(
-  sim_values = rexp(n = 1000, rate = 1)
-)
-
-ggplot2::ggplot(
-  y_rexp,
-  aes(sim_values)
-) +
+```{r plot-exp-dist, fig.width=6.5, fig.height=3.5}
+y_rexp <- data.frame(sim_values = rexp(n = 1000, rate = 1))
+ggplot2::ggplot(y_rexp, aes(sim_values)) +
   ggplot2::geom_histogram(
     aes(y = ..density..),
     bins = 30,
@@ -157,58 +74,22 @@ ggplot2::ggplot(
     fill = "lightgreen",
     alpha = 0.5
   ) +
-  ggplot2::stat_function(
-    fun = dexp,
-    args = list(rate = 1),
-    linewidth = 1,
-    col = "red"
-  ) +
-  ggplot2::scale_x_continuous(
-    expand = c(0, 0),
-    n.breaks = 10
-  ) +
-  ggplot2::scale_y_continuous(
-    expand = c(0, 0),
-    limits = c(0, 1),
-    n.breaks = 10
-  ) +
+  ggplot2::stat_function(fun = dexp, args = list(rate = 1), linewidth = 1, col = "red") +
   ggplot2::labs(
     title = bquote("Simulated Exponential PDF (" * lambda == 1 * ")"),
     x = "x",
     y = expression(f(x))
   ) +
-  ggplot2::theme(
-    plot.title = element_text(hjust = 0.5)
-  )
+  ggplot2::theme(plot.title = element_text(hjust = 0.5))
 ```
-
-We can easily see that the PDF is given by an exponential decay function scaled by the rate parameter $\lambda$.
-
-\section{Central Limit Theorem}
 
 \section{Simulation}
 
 \subsection{Simulating the exponential distribution}
 
-Before we proceed to code and run our simulations, let's determine the properties of the theoretical exponential distribution for a rate parameter $\lambda = 0.2$. Using Equation (9), the theoretical mean is
+Using Equation (9), the theoretical mean is $E(X) = 1/\lambda = 1/0.2 = 5$ and the theoretical variance is given by $\sigma^{2} = \frac{1}{n} \sum{(x_{i} - \bar{x})^{2}} = \frac{1}{40} \cdot \frac{1}{0.2^{2}} = 0.625$. Using the `rexp` function, we run 1000 simulations, each generating a sample from an exponential distribution.
 
-\begin{align}
-  E(X) &= 1/\lambda \\
-  &= 1/0.2 \\
-  &= 5
-\end{align}
-
-and the theoretical variance is given by
-
-\begin{align}
-  \sigma^{2} &= \frac{1}{n} \sum{(x_{i} - \bar{x})^{2}} \\
-  &= \frac{1}{40} \cdot \frac{1}{0.2^{2}} \\
-  &= 0.625
-\end{align}
-
-Using the `rexp` function, we run 1000 simulations, each generating a sample from an exponential distribution. The `rexp` function takes two arguments: the number of samples, $n$, and the rate parameter $\lambda$.
-
-```{r exp-sims, echo = TRUE}
+```{r exp-sims, echo = TRUE, fig.width=6.5, fig.height=3.5}
 # Set seed for reproducibility
 set.seed(100)
 # Set parameters
@@ -216,9 +97,7 @@ lambda <- 0.2
 n_sample <- 40
 n_sims <- 1000
 # Run 1000 simulations each generating 40 exponential random variables
-df_sim <- data.frame(
-  vals = c(replicate(n_sims, rexp(n = n_sample, rate = lambda)))
-)
+df_sim <- data.frame(vals = c(replicate(n_sims, rexp(n = n_sample, rate = lambda))))
 # Plot empirical distribution of simulated random numbers
 ggplot2::ggplot(df_sim, aes(vals)) +
   ggplot2::geom_histogram(
@@ -226,10 +105,9 @@ ggplot2::ggplot(df_sim, aes(vals)) +
     binwidth = 0.75,
     col = "black",
     fill = "lightgreen",
-    alpha = 0.5
+    alpha = 0.5,
+    linewidth = 0.1
   ) +
-  ggplot2::scale_x_continuous(expand = c(0, 0), n.breaks = 10) +
-  ggplot2::scale_y_continuous(expand = c(0, 0), limits = c(0, NA)) +
   ggplot2::labs(
     title = bquote("Empirical exponential distribution (n = 40) (" * lambda == 0.2 * ")"),
     x = "x",
@@ -238,47 +116,64 @@ ggplot2::ggplot(df_sim, aes(vals)) +
   ggplot2::theme(plot.title = element_text(hjust = 0.5))
 ```
 
-\subsection{Sample mean versus theoretical mean}
+Let's run a large number of simulations to simulate the mean of 40 exponential random variables and then compare the sample mean and sample variance to the theoretical distribution.
 
-```{r mean-comparison}
+```{r mean-simulation, echo = TRUE}
 # Run 1000 simulations each generating the mean of 40 exponential random variables
-df_sim_means <- data.frame(
-  vals = c(replicate(n_sims, mean(rexp(n = n_sample, rate = lambda))))
-)
+df_sim_means <- data.frame(vals = c(replicate(n_sims, mean(rexp(n = n_sample, rate = lambda)))))
 # Plot the empirical distribution of sample means
-ggplot2::ggplot(df_sim_means, aes(vals)) +
+plot_sample_means <- ggplot2::ggplot(df_sim_means, aes(vals)) +
   ggplot2::geom_histogram(
     aes(y = ..density..),
     binwidth = 0.20,
     col = "black",
     fill = "lightblue",
-    alpha = 0.5
+    alpha = 0.5,
+    linewidth = 0.1
   ) +
   ggplot2::scale_x_continuous(expand = c(0, 0), n.breaks = 10) +
   ggplot2::scale_y_continuous(expand = c(0, 0), limits = c(0, NA)) +
   ggplot2::labs(
     title = bquote("Empirical distribution of means (n = 40) (" * lambda == 0.2 * ")"),
     x = "x",
-    y = expression(f(x))
+    y = expression(bar(x))
   ) +
   ggplot2::theme(plot.title = element_text(hjust = 0.5))
 ```
 
+\subsection{Sample mean versus theoretical mean}
+
+```{r mean-comparison, echo = TRUE}
+sample_mean <- mean(df_sim_means$vals, na.rm = TRUE)
+sample_mean
+```
+
+We see that the sample mean $\bar{x} = 5.015545$ which is very close to the theoretical mean $\mu$.
+
 \subsection{Sample variance versus theoretical variance}
 
-```{r variance-comparison}
+```{r variance-comparison, echo = TRUE}
+sample_variance <- var(df_sim_means$vals, na.rm = TRUE)
+sample_variance
 ```
+
+We see that the sample variance $s^{2} = 0.657945$ is very close to the theoretical variance $\sigma^{2}$.
 
 \subsection{Distribution}
 
+To illustrate the CLT, we can overlay the theoretical PDF of a normal distribution (`dnorm`) on the previous plot. 
 
+```{r distribution, echo = TRUE, fig.width=6.5, fig.height=3.5}
+plot_vlines <- data.frame(
+  x = c(5, sample_mean),
+  y = c(0.1, 0.2),
+  labels = c("Theoretical mean", "Sample mean")
+)
+plot_sample_means +
+  ggplot2::geom_function(fun = dnorm, args = list(mean = sample_mean, sd = sqrt(sample_variance))) +
+  ggplot2::geom_vline(data = plot_vlines, aes(xintercept = x, colour = labels), show.legend = FALSE)
+```
 
+\section{Conclusion}
 
-
-
-
-
-
-
-
-
+This simulation exercise demonstrates the CLT by showing that, as the sample size increases, the distribution of sample means from exponential random variables approaches a normal distribution, closely matching the empirical distribution observed in the simulation.
