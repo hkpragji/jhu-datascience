@@ -38,6 +38,7 @@ header-includes:
 # Load required libraries
 library(dplyr)
 library(ggplot2)
+library(moments)
 library(datasets)
 data(ToothGrowth)
 attach(ToothGrowth)
@@ -73,20 +74,77 @@ ToothGrowth %>%
 
 \section{Exploratory data analysis}
 
-```{r eda-plots}
+```{r eda-plot1}
+# Plot basic histogram
+ggplot2::ggplot(
+  ToothGrowth,
+  aes(x = len)
+) +
+  ggplot2::geom_histogram(
+    bins = 20,
+    col = "black",
+    fill = "lightblue"
+  )
+
+moments::skewness(ToothGrowth$len)
+moments::kurtosis(ToothGrowth$len)
+```
+
+The overall distribution of odontoblast length is near-normal but right-tailed with negative skewness of -0.15 and the distribution is platykurtic with a kurtosis of 2.02.
+
+```{r eda-plot2}
 # Plot length x dose
 ggplot2::ggplot(
   ToothGrowth,
-  aes(x = dose, y = len, colour = supp)
+  aes(x = dose, y = len)
 ) +
   ggplot2::geom_point()
 ```
 
+Higher doses of vitamin C, irrespective of the type of supplement, appear to be associated with longer odontoblasts.
+
+```{r eda-plot3}
+ggplot2::ggplot(
+  ToothGrowth,
+  aes(x = supp, y = len, colour = supp)
+) +
+  ggplot2::geom_boxplot() +
+  ggplot2::facet_grid(~ dose)
+```
+
+The boxplots show that, for doses of 0.5 mg/day and 1.0 mg/day, supplementation with orange juice was associated with increased odontoblast length, however for doses of 2.0 mg/day, the difference in length was not as significant. The natural next step in this analysis is to test, using inference, whether:
+
+\begin{enumerate}
+  \item Odontoblast length differs by supplement type;
+  \item Odontoblast length differs by dose;
+  \item Dose effect depends on supplement type.
+\end{enumerate}
+
 \section{Methods}
 
-\section{Assumptions}
+\subsection{Hypotheses}
+
+1. Effect of supplement type on odontoblast length
+
+\subsection{Statistical methods}
+
+\subsection{Assumptions}
+
+In this analysis, it is assumed that:
+
+\begin{enumerate}
+  \item Odontoblast length is approximately normally distributed within each group;
+  \item Each length observation is independent;
+  \item The variability in odontoblast length is different across dose and supplement groups.
+\end{enumerate}
 
 \section{Results}
+
+```{r length-supp-test}
+ToothGrowth %>%
+  dplyr::filter(supp == "OJ") %>%
+  dplyr::pull(len)
+```
 
 \section{Discussion}
 
