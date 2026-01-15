@@ -124,9 +124,15 @@ The boxplots show that, for doses of 0.5 mg/day and 1.0 mg/day, supplementation 
 
 \subsection{Hypotheses}
 
-1. Effect of supplement type on odontoblast length
+1. Effect of supplement type on odontoblast length: $H_{0}: \mu_{\text{OJ}} = \mu_{\text{VC}}$, $H_{1}: \mu_{\text{OJ}} \neq \mu_{\text{VC}}$.
+
+2. Effect of dose on odontoblast length: $H_{0}: \mu_{1} = \mu_{2} = \mu_{3}$, $H_{1}: \exists i,j \in {1,2,3}, i \neq j \text{ such that } \mu_{i} \neq \mu_{j}$.
+
+3. Effect of supplement type on dose response: 
 
 \subsection{Statistical methods}
+
+All hypothesis tests were conducted at a 5$\%$ significance level ($\alpha = 0.5$).
 
 \subsection{Assumptions}
 
@@ -140,11 +146,26 @@ In this analysis, it is assumed that:
 
 \section{Results}
 
+\textbf{\underline{Effect of supplement type on odontoblast length}}
+
 ```{r length-supp-test}
-ToothGrowth %>%
+# Create separate dataframes for OJ and VC
+oj_len <- ToothGrowth %>%
   dplyr::filter(supp == "OJ") %>%
   dplyr::pull(len)
+vc_len <- ToothGrowth %>%
+  dplyr::filter(supp == "VC") %>%
+  dplyr::pull(len)
+# Run two-tailed T-test
+t_test_supp <- t.test(oj_len, vc_len, alternative = "two.sided", paired = FALSE, var.equal = FALSE, conf.level = 0.95)
+print(t_test_supp$p.value)
 ```
+
+Since $p = 0.06 > \alpha$, we fail to reject the null hypothesis; there is insufficient evidence to conclude that the supplement type has a significant impact on the length of odontoblasts.
+
+\textbf{\underline{Effect of dose on odontoblast length}}
+
+\textbf{\underline{Effect of supplement type on dose response}}
 
 \section{Discussion}
 
