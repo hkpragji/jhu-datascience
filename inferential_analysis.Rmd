@@ -74,6 +74,8 @@ ToothGrowth %>%
 
 \section{Exploratory data analysis}
 
+\subsection{Overall distribution of odontoblast length}
+
 ```{r eda-plot1}
 # Plot basic histogram
 ggplot2::ggplot(
@@ -90,7 +92,9 @@ moments::skewness(ToothGrowth$len)
 moments::kurtosis(ToothGrowth$len)
 ```
 
-The overall distribution of odontoblast length is near-normal but right-tailed with negative skewness of -0.15 and the distribution is platykurtic with a kurtosis of 2.02.
+The overall distribution of odontoblast length is near-normal with very slight skewness of -0.15 and the distribution is platykurtic with a kurtosis of 2.02. Although the distribution is not perfectly Gaussian, the observed skewness and kurtosis indicate only minor deviations from normality, and therefore the use of parametric methods such as t-tests remains appropriate.
+
+\subsection{Relationship between dose and odontoblast length}
 
 ```{r eda-plot2}
 # Plot length x dose
@@ -101,7 +105,9 @@ ggplot2::ggplot(
   ggplot2::geom_point()
 ```
 
-Higher doses of vitamin C, irrespective of the type of supplement, appear to be associated with longer odontoblasts.
+The scatter plot suggests that higher doses of vitamin C, irrespective of supplement type, are associated with increased mean odontoblast length.
+
+\subsection{Effect of supplement type on odontoblast length}
 
 ```{r eda-plot3}
 ggplot2::ggplot(
@@ -112,11 +118,11 @@ ggplot2::ggplot(
   ggplot2::facet_grid(~ dose)
 ```
 
-The boxplots show that, for doses of 0.5 mg/day and 1.0 mg/day, supplementation with orange juice was associated with increased odontoblast length, however for doses of 2.0 mg/day, the difference in length was not as significant. The natural next step in this analysis is to test, using inference, whether:
+The boxplots suggest that, for doses of 0.5 mg/day and 1.0 mg/day, supplementation with orange juice was associated with increased mean odontoblast length, however for doses of 2.0 mg/day, the difference in length was not as significant. The natural next step in this analysis is to test, using inference, whether:
 
 \begin{enumerate}
-  \item Odontoblast length differs by supplement type;
-  \item Odontoblast length differs by dose;
+  \item Mean odontoblast length differs by supplement type;
+  \item Mean odontoblast length differs by dose;
   \item Dose effect depends on supplement type.
 \end{enumerate}
 
@@ -124,9 +130,9 @@ The boxplots show that, for doses of 0.5 mg/day and 1.0 mg/day, supplementation 
 
 \subsection{Hypotheses}
 
-1. Effect of supplement type on odontoblast length: $H_{0}: \mu_{\text{OJ}} = \mu_{\text{VC}}$, $H_{1}: \mu_{\text{OJ}} \neq \mu_{\text{VC}}$.
+1. Effect of supplement type on mean odontoblast length: $H_{0}: \mu_{\text{OJ}} = \mu_{\text{VC}}$, $H_{1}: \mu_{\text{OJ}} \neq \mu_{\text{VC}}$.
 
-2. Effect of dose on odontoblast length: $H_{0}: \mu_{1} = \mu_{2} = \mu_{3}$, $H_{1}: \exists i,j \in {1,2,3}, i \neq j \text{ such that } \mu_{i} \neq \mu_{j}$.
+2. Effect of dose on mean odontoblast length: $H_{0}: \mu_{1} = \mu_{2} = \mu_{3}$, $H_{1}: \exists i,j \in {1,2,3}, i \neq j \text{ such that } \mu_{i} \neq \mu_{j}$.
 
 3. Effect of supplement type on dose response: 
 
@@ -139,14 +145,14 @@ All hypothesis tests were conducted at a 5$\%$ significance level ($\alpha = 0.5
 In this analysis, it is assumed that:
 
 \begin{enumerate}
-  \item Odontoblast length is approximately normally distributed within each group;
+  \item Mean odontoblast length is approximately normally distributed within each group;
   \item Each length observation is independent;
-  \item The variability in odontoblast length is different across dose and supplement groups.
+  \item The variability in mean odontoblast length is different across dose and supplement groups.
 \end{enumerate}
 
 \section{Results}
 
-\textbf{\underline{Effect of supplement type on odontoblast length}}
+\subsection{Effect of supplement type on odontoblast length}
 
 ```{r length-supp-test}
 # Create separate dataframes for OJ and VC
@@ -161,11 +167,43 @@ t_test_supp <- t.test(oj_len, vc_len, alternative = "two.sided", paired = FALSE,
 print(t_test_supp$p.value)
 ```
 
-Since $p = 0.06 > \alpha$, we fail to reject the null hypothesis; there is insufficient evidence to conclude that the supplement type has a significant impact on the length of odontoblasts.
+Since $p = 0.06 > \alpha$, we fail to reject the null hypothesis; there is insufficient evidence to conclude that the supplement type has a significant impact on the mean length of odontoblasts.
 
-\textbf{\underline{Effect of dose on odontoblast length}}
+\subsection{Effect of dose on odontoblast length}
 
-\textbf{\underline{Effect of supplement type on dose response}}
+```{r prep-length-dose-test}
+d05 <- ToothGrowth %>%
+  dplyr::filter(dose == 0.5) %>%
+  dplyr::pull(len)
+d10 <- ToothGrowth %>%
+  dplyr::filter(dose == 1.0) %>%
+  dplyr::pull(len)
+d20 <- ToothGrowth %>%
+  dplyr::filter(dose == 2.0) %>%
+  dplyr::pull(len)
+```
+
+The following t-tests are used to investigate whether there is a significant difference in mean odontoblast lengths between different doses:
+
+\textbf{\underline{$D_{0.5}$ vs $D_{1.0}$}}
+
+```{r length-dose-test1}
+
+```
+
+\textbf{\underline{$D_{0.5}$ vs $D_{2.0}$}}
+
+```{r length-dose-test2}
+
+```
+
+\textbf{\underline{$D_{1.0}$ vs $D_{2.0}$}}
+
+```{r length-dose-test3}
+
+```
+
+\subsection{Effect of supplement type on dose response}
 
 \section{Discussion}
 
