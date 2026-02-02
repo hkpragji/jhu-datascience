@@ -37,6 +37,7 @@ header-includes:
 ```{r setup, echo = FALSE, message = FALSE, warning = FALSE}
 # Load required libraries
 library(dplyr)
+library(purrr)
 library(ggplot2)
 library(moments)
 library(datasets)
@@ -202,7 +203,7 @@ t_test_dose <- function(d1, d2) {
     alternative = "two.sided",
     paired = FALSE,
     var.equal = FALSE,
-    conf.level = 0.9
+    conf.level = 0.95
   )
   p_value <- test$p.value
   return(p_value)
@@ -239,7 +240,7 @@ For doses of 0.5 mg/day and 1.0 mg/day, $p < \alpha$, so we reject the null hypo
 
 The results of testing all three hypotheses listed in Section 5.1 are:
 
-\begin{enumerate}
+\begin{enumerate}[leftmargin=*]
   \item Supplement type does not have a significant effect on mean odontoblast length - as dosage increases, mean odontoblast length increases irrespective of supplememt type;
   \item Dosage of vitamin C does have a significant effect on mean odontoblast length - higher doses of vitamin C contribute to greater tooth length;
   \item For doses of 0.5 mg/day and 1.0 mg/day, there is a significant effect on mean odontoblast length; the same is not true for a dose of 2.0 mg/day.
