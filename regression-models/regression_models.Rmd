@@ -4,10 +4,10 @@ author: "Hiten Pragji"
 date: "`r format(Sys.Date(), '%d-%m-%Y')`"
 output: 
   pdf_document:
-    toc: false
+    toc: true
     number_sections: true
     latex_engine: xelatex
-geometry: margin=0.50in
+geometry: margin=0.75in
 fontsize: 10pt
 header-includes:
   - \usepackage{amsmath}
@@ -39,35 +39,47 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 
 \section{Introduction}
 
-Linear models
 \begin{itemize}
-  \item Linear regression
-  \item Polynomial regression
-  \item Ridge regression
-  \item Lasso regression
+  \item \textbf{Linear models}
+    \begin{itemize}[leftmargin=*]
+      \item Linear regression
+      \item Polynomial regression
+      \item Ridge regression
+      \item Lasso regression
+    \end{itemize}
+  \item \textbf{Generalised linear models}
+    \begin{itemize}[leftmargin=*]
+      \item Logistic regression
+      \item Poisson regression
+    \end{itemize}
+  \item \textbf{Non-linear parametric models}
+  \item \textbf{Non-parametric models}
 \end{itemize}
-Generalised linear models
-\begin{itemize}
-  \item Logistic regression
-  \item Poisson regression
-\end{itemize}
-Non-linear parametric models
-Non-parametric models
 
 \section{Linear regression}
 
 Regression is a supervised machine learning method by which we can determine the existence and strength of the relationship between two or more variables. In particular, linear regression is a useful tool for predicting an quantitative response. Broadly, there are often two separate goals in regression:
 
-\begin{itemize}
+\begin{itemize}[leftmargin=*]
   \item Prediction: fitting a model to observed data to predict outcomes for new observations;
   \item Inference: fitting a model to estimate and interpret the relationships between variables.
 \end{itemize}
 
+A clear scientific question should define our explanatory variable of interest ($x$), which is referred to as a predictor or independent variable. Our outcome of interest is referred to as the dependent variable or outcome ($y$). In linear regression, the dependent variable is always continuous; it cannot be a categorical variable. The explanatory variables can be either continuous or categorical.
 
+Here are some examples of real-world regression problems:
+
+\begin{itemize}[leftmargin=*]
+  \item Predict tomorrow's stock market price given current market conditions and other possible side information;
+  \item Predict the temperature at any location inside a building using weather data, time, door sensors, etc.;
+  \item Predict systolic blood pressure based on the number of cups of coffee consumed per day;
+  \item Predict the fuel efficiency of a car given engine parameters, speed, and road conditions;
+  \item Predict daily electricity consumption in a household based on appliance usage, weather, and time of day;
+\end{itemize}
 
 \subsection{Simple linear regression}
 
-
+Simple linear regression, or univariate linear regression, is a very straightforward approach for predicting a quantitative response $Y$ on the basis of a single predictor variable $X$. 
 
 \subsection{Multiple linear regression}
 
