@@ -1,0 +1,90 @@
+---
+title: "Regression Models"
+author: "Hiten Pragji"
+date: "`r format(Sys.Date(), '%d-%m-%Y')`"
+output: 
+  pdf_document:
+    toc: false
+    number_sections: true
+    latex_engine: xelatex
+geometry: margin=0.50in
+fontsize: 10pt
+header-includes:
+  - \usepackage{amsmath}
+  - \usepackage{amssymb}
+  - \usepackage{graphicx}
+  - \usepackage[numbers]{natbib}
+  - \usepackage{url}
+  - \usepackage{caption}
+  - \usepackage{notoccite}
+  - \usepackage{enumitem}
+  - \usepackage{caption}
+  - \usepackage{xcolor}
+  - \usepackage{titlesec}
+  - \usepackage{parskip}
+  - \usepackage{hyperref}
+  - \usepackage{mathtools}
+  - \usepackage{bm}
+  - \usepackage{dsfont}
+  - \usepackage{bigints}
+  - \usepackage[nointlimits]{esint}
+  - \usepackage{titlesec}
+  - \titleformat*{\section}{\large\bfseries}
+  - \titleformat*{\subsection}{\normalsize\bfseries}
+---
+
+```{r setup, echo = FALSE, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+\section{Introduction}
+
+Linear models
+\begin{itemize}
+  \item Linear regression
+  \item Polynomial regression
+  \item Ridge regression
+  \item Lasso regression
+\end{itemize}
+Generalised linear models
+\begin{itemize}
+  \item Logistic regression
+  \item Poisson regression
+\end{itemize}
+Non-linear parametric models
+Non-parametric models
+
+\section{Linear regression}
+
+Regression is a supervised machine learning method by which we can determine the existence and strength of the relationship between two or more variables. In particular, linear regression is a useful tool for predicting an quantitative response. Broadly, there are often two separate goals in regression:
+
+\begin{itemize}
+  \item Prediction: fitting a model to observed data to predict outcomes for new observations;
+  \item Inference: fitting a model to estimate and interpret the relationships between variables.
+\end{itemize}
+
+
+
+\subsection{Simple linear regression}
+
+
+
+\subsection{Multiple linear regression}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
