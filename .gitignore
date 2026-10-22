@@ -7,3 +7,6 @@
 *-concordance.tex
 *.tex
 *.log
+*.png
+*.js
+*.css
