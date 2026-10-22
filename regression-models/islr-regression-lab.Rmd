@@ -1,0 +1,209 @@
+---
+title: 'Lab: Linear Regression'
+output:
+  html_document:
+    df_print: paged
+editor_options:
+  chunk_output_type: inline
+---
+
+```{r setup, message=FALSE, warning=FALSE}
+library(tidymodels)
+library(ggplot2)
+library(ggcorrplot)
+library(performance)
+library(see)
+library(dplyr)
+library(car)
+library(ISLR2)
+
+tidymodels::tidymodels_prefer()
+lm_model <- parsnip::linear_reg() %>% parsnip::set_engine("lm")
+data(Auto)
+```
+
+### Question 8
+
+**Part A**
+
+Fit a simple linear regression model with `mpg` as response and `horsepower` as predictor:
+
+```{r}
+lm_auto <- lm_model %>%
+  parsnip::fit(mpg ~ horsepower, data = Auto)
+lm_auto %>%
+  parsnip::extract_fit_engine() %>%
+  summary()
+```
+
+(i) Evidence of a negative linear relationship between `horsepower` and `mpg`: $F \ggg 1$, *$p \lll 0.05$ provides sufficient evidence against $H_{0}$.
+
+```{r}
+ggplot2::ggplot(
+  Auto,
+  aes(x = horsepower, y = mpg)
+) +
+  ggplot2::geom_point(size = 3, alpha = 0.5) +
+  ggplot2::geom_smooth(
+    method = "lm",
+    formula = y ~ x,
+    se = TRUE,
+    colour = "black"
+  ) +
+  ggplot2::theme_minimal() +
+  ggplot2::labs(
+    x = "Engine horsepower",
+    y = "Miles per gallon"
+  )
+```
+
+(ii) Strength of relationship between `horsepower` and `mpg`: $R^{2} = 0.61$ means the linear regression model with `horsepower` as the predictor explains about 61% of the variation in `mpg`, and $RSE = 4.91$ mpg means that the observed `mpg` values typically deviate from the fitted regression line by approximately 4.91 mpg.
+
+(iii) There is a *negative* linear relationship between `horsepower` and `mpg`. For every increase of 100 hbp, `mpg` tends to decrease by approximately 15.8 mpg.
+
+(iv) Predicted `mpg` for `horsepower` of 98:
+
+```{r}
+new_hbp <- tibble::tibble(horsepower = 98)
+dplyr::bind_cols(
+  new_hbp,
+  predict(object = lm_auto, new_data = new_hbp),
+  predict(
+    object = lm_auto,
+    new_data = new_hbp,
+    type = "pred_int",
+    level = 0.95
+  ) %>%
+    dplyr::rename(
+      pred_lower = .pred_lower,
+      pred_upper = .pred_upper
+    ),
+  predict(
+    object = lm_auto,
+    new_data = new_hbp,
+    type = "conf_int",
+    level = 0.95
+  ) %>%
+    dplyr::rename(
+      conf_lower = .pred_lower,
+      conf_upper = .pred_upper
+    )
+)
+```
+
+Hence the predicted `mpg` associated with a `horsepower` of 98 is $\approx 24.5$ mpg and the associated 95$\%$ confidence interval and prediction intervals are [23.97, 24.96] and [14.81, 34.13], respectively.
+
+**Part B**
+
+Using the `lm()`, `plot()`, and `abline()` functions from base R, we have:
+
+```{r}
+lm_auto <- lm(formula = mpg ~ horsepower, data = Auto)
+plot(
+  x = Auto$horsepower,
+  y = Auto$mpg,
+  xlab = "Horsepower (hbp)",
+  ylab = "Miles per gallon (mpg)",
+  main = "Linear regression plot of hbp vs. mpg"
+)
+abline(lm_auto, col = "red")
+```
+
+**Part C**
+
+```{r}
+plot(lm_auto)
+```
+Potential problems with the model fit:
+
+```{r}
+```
+
+1. **Non-linearity of the data**: The residual plot shows a U-shaped pattern with the fitted values scattered over a wider range and not centered around zero, which means the model may not have captured the relationship adequately and suggests that the linearity assumption has been violated;
+2. **Outliers**: Many of the fitted values have unusually large residuals;
+3. **High leverage points**: There are many observations that are high leverage.
+
+### Question 9
+
+**Part A**
+
+Scatterplot matrix:
+
+```{r}
+car::scatterplotMatrix(Auto, smooth = TRUE)
+```
+
+**Part B**
+
+Correlation matrix:
+
+```{r}
+cor_df <- Auto %>% dplyr::select(-name)
+cor(cor_df)
+```
+
+**Part C**
+
+Fit a multiple linear regression model to `mpg` for all numerical predictors:
+
+```{r}
+# Fit MLR model
+mlr_auto <- lm_model %>%
+  parsnip::fit(formula = mpg ~.-name,data = Auto)
+mlr_auto_lm <- parsnip::extract_fit_engine(mlr_auto)
+```
+
+(i) Is there a relationship between the predictors and the response:
+
+```{r}
+# View model summary
+mlr_auto_lm %>%
+  summary()
+```
+
+The overall F-statistic is 252.4 with a p-value < 0.05, which provides sufficient evidence against the null hypothesis that all regression coefficients are equal to zero. Hence, there is a relationship between the predictors and the response.
+
+(ii) Which predictors are significant at the 5% level:
+
+```{r}
+mlr_auto_lm %>%
+  summary() %>%
+  .$coefficients %>%
+  as.data.frame() %>%
+  dplyr::filter(`Pr(>|t|)` < 0.05)
+```
+
+The predictors that appear to be significant at the 5% level are `displacement` (positive), `weight` (negative), `year` (positive), and `origin` (positive).
+
+(iii) The coefficient for the `year` variable is 0.75 which suggests that as each year passes, `mpg` increases by this amount.
+
+**Part D**
+
+```{r, fig.width=10, fig.height=10, out.width="100%"}
+performance::check_model(mlr_auto_lm)
+```
+
+The residual plots suggest the following:
+
+1. Non-linearity: The residual plot of fitted values shows a curved fit which suggests that the data may be non-linear;
+2. There is a point with unusually high leverage:
+
+```{r}
+car::influencePlot(mlr_auto_lm)
+```
+
+3. The variation inflation factors (VIF) for `cylinders`, `displacement`, and `weight` are all greater than 10, which suggests that these predictors are highly correlated with each other and may be causing multicollinearity in the model. `horsepower` has a VIF of 9.94 which is also high and suggests that it is highly correlated with the other predictors in the model.
+
+```{r}
+performance::check_collinearity(mlr_auto_lm)
+```
+
+4. 
+
+
+
+
+
+
+
+
