@@ -1,0 +1,207 @@
+---
+title: "Multiple linear regression, Residuals, and Diagnostics"
+subtitle: "JHU Data Science Regression Models Quiz 3"
+author: "Hiten Pragji"
+date: "`r format(Sys.Date(), '%d-%m-%Y')`"
+output: 
+  pdf_document:
+    toc: false
+    number_sections: true
+    latex_engine: xelatex
+geometry: margin=0.75in
+fontsize: 10pt
+header-includes:
+  - \usepackage{amsmath}
+  - \usepackage{amssymb}
+  - \usepackage{graphicx}
+  - \usepackage[numbers]{natbib}
+  - \usepackage{url}
+  - \usepackage{caption}
+  - \usepackage{notoccite}
+  - \usepackage{enumitem}
+  - \usepackage{caption}
+  - \usepackage{xcolor}
+  - \usepackage{titlesec}
+  - \usepackage{parskip}
+  - \usepackage{hyperref}
+  - \usepackage{mathtools}
+  - \usepackage{bm}
+  - \usepackage{dsfont}
+  - \usepackage{bigints}
+  - \usepackage[nointlimits]{esint}
+  - \usepackage{titlesec}
+  - \titleformat*{\section}{\large\bfseries}
+  - \titleformat*{\subsection}{\normalsize\bfseries}
+---
+
+```{r setup, echo = FALSE, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+data(mtcars)
+```
+
+Q1. Consider the `mtcars` data set. Fit a model with `mpg` as the outcome that includes number of cylinders as a factor variable and weight as confounder. Give the adjusted estimate for the expected change in `mpg` comparing 8 cylinders to 4.
+
+\textbf{Solution}:
+
+To minimise bias in estimating the effect of `cyl` on `mpg`, we need to adjust for the confounding variable `wt`. To do this, we need to include it as an additional predictor in the regression model:
+
+```{r sol1}
+lm_model <- lm(formula = mpg ~ factor(cyl) + wt, data = mtcars)
+coef(lm_model)
+```
+
+The linear regression is thus modelled as
+
+\begin{align}
+  mpg_{i} = \beta_{0} + \beta_{1}I(cyl_{i} = 6) + \beta_{2}I(cyl_{i} = 8) + \beta_{3}wt_{i} + \epsilon_{i}
+\end{align}
+
+The expected `mpg` for a 4-cylinder car, holding weight constant, is given by
+
+\begin{align}
+  E(mpg_{4}| wt = w) = \beta_{0} + \beta_{3}w
+\end{align}
+
+and the expected `mpg` for a 8-cylinder car, holding weight constant, is given by
+
+\begin{align}
+  E(mpg_{8}| wt = w) = \beta_{0} + \beta_{2} + \beta_{3}w
+\end{align}
+
+Subtracting (2) from (3) gives
+
+\begin{align}
+  \Delta{E(mpg)} = E(mpg_{8}| wt = w) - E(mpg_{4}| wt = w) = \beta_{2}
+\end{align}
+
+The output of `summary()` gives $\beta_{2} = -6.0709$ so we can say that the \textbf{adjusted} estimate for the expected change in `mpg` comparing 8 cylinders to 4 is \textbf{-6.0709}.
+
+\clearpage
+
+Q2. Consider the `mtcars` data set. Fit a model with `mpg` as the outcome that includes number of cylinders as a factor variable and weight as a possible confounding variable. Compare the effect of 8 versus 4 cylinders on `mpg` for the adjusted and unadjusted by weight models.  Here, adjusted means including the weight variable as a term in the regression model and unadjusted means the model without weight included. What can be said about the effect comparing 8 and 4 cylinders after looking at models with and without weight included?
+
+\textbf{Solution}:
+
+Consider the following two models:
+
+```{r sol2-1}
+lm_mod_adj <- lm(formula = mpg ~ factor(cyl) + wt, data = mtcars)
+lm_mod_unadj <- lm(formula = mpg ~ factor(cyl), data = mtcars)
+```
+
+```{r sol2-2}
+coef(lm_mod_adj)
+coef(lm_mod_unadj)
+```
+
+The model `lm_mod_unadj` which does not include `wt` as a possible confounding variable has a 8-cylinder model coefficient of $\beta_{2} = -11.5636$, while the model `lm_mod_adj`, which is adjusted for weight, has a 8-cylinder model coefficient of $\beta_{2} = -6.0709$. This means that when we include `wt` in the model, it doesn't have as much of an impact on the model fit compared to when we disregard `wt`.
+
+\clearpage
+
+Q3. Consider the `mtcars` data set. Fit a model with `mpg` as the outcome that considers number of cylinders as a factor variable and weight as confounder. Now fit a second model with `mpg` as the outcome model that considers the interaction between number of cylinders (as a factor variable) and weight. Give the $P$-value for the likelihood ratio test comparing the two models and suggest a model using 0.05 as a type I error rate significance benchmark.
+
+\textbf{Solution}:
+
+Consider the following two models:
+
+```{r sol3-1}
+model1 <- lm(formula = mpg ~ factor(cyl) + wt, data = mtcars)
+model2 <- lm(formula = mpg ~ factor(cyl) * wt, data = mtcars)
+```
+
+`model1` assumes a constant relationship between weight and mpg for each cylinder group, and `model2` allows this relationship to differ between cylinder groups (interaction model). The model equation for `model1` is hence given by
+
+\begin{align}
+  mpg_{i} = \beta_{0} + \beta_{1}I(cyl_{i} = 6) + \beta_{2}I(cyl_{i} = 8) + \beta_{3}wt_{i} + \epsilon_{i}
+\end{align}
+
+where $\beta_{0}$ is the reference group (4 cylinders), $I(cyl_{i} = 6) = 1$ if the car has 6 cylinders (0 otherwise), $I(cyl_{i} = 8) = 1$ if the car has 8 cylinders (0 otherwise), $wt$ is the car weight, and $\epsilon_{i}$ is the error term.
+
+The model equation for `model2`, the interaction model, is given by
+
+\begin{align}
+  mpg_i = \beta_{0} + \beta_{1}I(cyl_{i} = 6) + \beta_{2}I(cyl_{i} = 8) + \beta_{3}wt_{i} + \beta_{4}\left[I(cyl_{i} = 6) \times wt_{i}\right] + \beta_{5}\left[I(cyl_{i} = 8) \times wt_{i}\right] + \epsilon_{i}
+\end{align}
+
+where the two additional terms are the interaction terms. We want to determine whether including the additional interaction terms significantly improves the fit of the model to the data. We can do this by running a likelihood ratio test (LRT), which compares the maximum likelihood of the two models. The LRT tests whether the improvement in likelihood from adding the interaction terms is sufficiently large to provide evidence that they improve the model beyond what could be expected from random variation.
+
+For linear regression models, we can answer this using an $F$-test, which as we recall, is defined as
+
+\begin{align}
+  F = \frac{\text{variation explained by the model}}{\text{unexplained variation}}
+\end{align}
+
+Both tests are assessing whether the additional terms in `model2` provide sufficient evidence of an improvement in model fit. The LRT does this by comparing the maximum likelihoods of the two models, whereas the $F$-test does so by comparing the reduction in RSS relative to the remaining unexplained variation. For ordinary linear regression, the $F$-test is the standard approach for comparing nested models using the `anova()` function.
+
+```{r sol3-2}
+anova(model1, model2, test = "LRT")
+```
+
+The $p$-value associated with the LRT is 0.1038, i.e., $p \leq 0.05$. Hence we do not have sufficient evidence, at the 5$\%$ significance level, to reject the null hypothesis that the additional interaction terms do not significantly improve the model fit. Therefore we favour the simpler model, which assumes the relationship between weight and mpg is constant across cylinder groups.
+
+\clearpage
+
+Q4. Consider the `mtcars` data set. Fit a model with `mpg` as the outcome that includes number of cylinders as a factor variable and weight included in the model as `lm(mpg ~ I(wt * 0.5) + factor(cyl), data = mtcars)`. How is the `wt` coefficient interpreted?
+
+\textbf{Solution}:
+
+Let's look at this model:
+
+```{r sol4}
+mod_lm <- lm(formula = mpg ~ I(wt * 0.5) + factor(cyl), data = mtcars)
+coef(mod_lm)
+```
+
+The resulting model equation is given by
+
+\begin{align}
+  mpg_{i} = \beta_{0} + \beta_{1}(0.5wt_{i}) + \beta_{2}I(cyl_{i} = 6) + \beta_{3}I(cyl_{i} = 8) + \epsilon_{i}
+\end{align}
+
+Hence we can interpret the `wt` coefficient as the estimated expected change in `mpg` per one ton increase in weight for a specific number of cylinders (4, 6, 8).
+
+\clearpage
+
+Q5. Consider the following dataset:
+
+```{r sol5-1}
+x <- c(0.586, 0.166, -0.042, -0.614, 11.72)
+y <- c(0.549, -0.026, -0.127, -0.751, 1.344)
+lm_df <- data.frame(x, y)
+```
+
+Give the hat diagonal for the most influential point.
+
+\textbf{Solution}:
+
+```{r sol5-2}
+lin_mod <- lm(formula = y ~ x, data = lm_df)
+max(hatvalues(lin_mod))
+```
+
+\clearpage
+
+Q6. Consider again the dataset from the previous question. Give the slope DFBETA for the point with the highest hat value.
+
+\textbf{Solution}:
+
+Influence is a measure of how much impact a point has on the regression fit. The most direct way to measure influence is to fit the model with the point included and excluded. DFBETA is one such measure of influence and is defined as the change in individual model coefficients when the $i^{\text{th}}$ point is deleted in fitting the model.
+
+DFBETA measures the influence of each observation on the coefficient of a particular predictor. It does this by measuring the difference in each parameter estimate with and without the influential point. An observation is influential if it has a significant effect on the coefficient. A case is an influential outlier if
+
+\begin{align}
+  |\text{DFBETA}| > \frac{2}{\sqrt{n}}
+\end{align}
+
+where $n$ is the sample size. In R, the `dfbetas()` function gives a matrix where each row is an observation and each column is a regression coefficient:
+
+```{r sol6-1}
+# Determine threshold for DFBETA
+threshold <- 2 / sqrt(nrow(lm_df))
+# Find all DFBETAS for each coefficient
+dfbetas(lin_mod)
+```
+
+The point with the highest hat value was the 5th observation, (11.72, 1.344). The DFBETA value for the slope coefficient at this point is -133.823, which means this observation is far beyond the threshold and is an influential outlier.
+\newline
+\hrule
