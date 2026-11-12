@@ -8,6 +8,7 @@ editor_options:
 ---
 
 ```{r setup, message=FALSE, warning=FALSE}
+library(ISLR2)
 library(tidymodels)
 library(ggplot2)
 library(ggcorrplot)
@@ -15,11 +16,13 @@ library(performance)
 library(see)
 library(dplyr)
 library(car)
-library(ISLR2)
 
 tidymodels::tidymodels_prefer()
 lm_model <- parsnip::linear_reg() %>% parsnip::set_engine("lm")
 data(Auto)
+auto_cleaned <- Auto %>%
+  dplyr::mutate_at(c("cylinders", "origin"), as.factor) %>%
+  dplyr::select(-name)
 ```
 
 ### Question 8
@@ -30,7 +33,7 @@ Fit a simple linear regression model with `mpg` as response and `horsepower` as 
 
 ```{r}
 lm_auto <- lm_model %>%
-  parsnip::fit(mpg ~ horsepower, data = Auto)
+  parsnip::fit(mpg ~ horsepower, data = auto_cleaned)
 lm_auto %>%
   parsnip::extract_fit_engine() %>%
   summary()
@@ -40,7 +43,7 @@ lm_auto %>%
 
 ```{r}
 ggplot2::ggplot(
-  Auto,
+  auto_cleaned,
   aes(x = horsepower, y = mpg)
 ) +
   ggplot2::geom_point(size = 3, alpha = 0.5) +
@@ -98,7 +101,7 @@ Hence the predicted `mpg` associated with a `horsepower` of 98 is $\approx 24.5$
 Using the `lm()`, `plot()`, and `abline()` functions from base R, we have:
 
 ```{r}
-lm_auto <- lm(formula = mpg ~ horsepower, data = Auto)
+lm_auto <- lm(formula = mpg ~ horsepower, data = auto_cleaned)
 plot(
   x = Auto$horsepower,
   y = Auto$mpg,
@@ -114,10 +117,8 @@ abline(lm_auto, col = "red")
 ```{r}
 plot(lm_auto)
 ```
-Potential problems with the model fit:
 
-```{r}
-```
+Potential problems with the model fit:
 
 1. **Non-linearity of the data**: The residual plot shows a U-shaped pattern with the fitted values scattered over a wider range and not centered around zero, which means the model may not have captured the relationship adequately and suggests that the linearity assumption has been violated;
 2. **Outliers**: Many of the fitted values have unusually large residuals;
@@ -130,7 +131,8 @@ Potential problems with the model fit:
 Scatterplot matrix:
 
 ```{r}
-car::scatterplotMatrix(Auto, smooth = TRUE)
+cor_df <- auto_cleaned %>% dplyr::select_if(is.numeric)
+car::scatterplotMatrix(cor_df, smooth = TRUE)
 ```
 
 **Part B**
@@ -138,7 +140,6 @@ car::scatterplotMatrix(Auto, smooth = TRUE)
 Correlation matrix:
 
 ```{r}
-cor_df <- Auto %>% dplyr::select(-name)
 cor(cor_df)
 ```
 
@@ -149,7 +150,7 @@ Fit a multiple linear regression model to `mpg` for all numerical predictors:
 ```{r}
 # Fit MLR model
 mlr_auto <- lm_model %>%
-  parsnip::fit(formula = mpg ~.-name,data = Auto)
+  parsnip::fit(formula = mpg ~., data = auto_cleaned)
 mlr_auto_lm <- parsnip::extract_fit_engine(mlr_auto)
 ```
 
@@ -198,11 +199,69 @@ car::influencePlot(mlr_auto_lm)
 performance::check_collinearity(mlr_auto_lm)
 ```
 
-4. 
+**Part E**
 
+Interaction models: As an example, let's evaluate whether the interaction between `weight` and `horsepower` is significant in the model. We can do this by fitting two models, one with the interaction term and one without, and then comparing them using an ANOVA test:
 
+```{r}
+# Full model with main effects and interaction between weight and horsepower
+mod_with_int <- lm_model %>%
+  parsnip::fit(formula = mpg ~. + weight:horsepower, data = auto_cleaned) %>%
+  parsnip::extract_fit_engine()
 
+# Reduced model with main effects only
+mod_without_int <- lm_model %>%
+  parsnip::fit(formula = mpg ~ ., data = auto_cleaned) %>%
+  parsnip::extract_fit_engine()
 
+anova(mod_without_int, mod_with_int)
+```
+
+The results of the ANOVA test show that the F-statistic is much, much larger than 1 and the p-value is much less than 0.05, which provides sufficient evidence against the null hypothesis that the interaction term does not significantly improve the model fit. Hence, we conclude that the interaction between `weight` and `horsepower` is significant in predicting `mpg`.
+
+**Part F**
+
+We know that the MLR model fitted earlier showed a non-linear association between the predictors and the response, so we could use a variable transformation on the predictor(s) to attempt to improve the model fit. How do we determine which predictors to transform? Here we can use *partial residual plots* (also known as *component-plus-residual plots*).
+
+Partial residual plots are used to visualise misspecification of the mean function attributable to continuous predictors, i.e., they allow us to check whether the model has correctly captured the relationship between the predictors and the *expected* response. Each partial residual plot is used to evaluate the relationship between a specific predictor and the response variable after controlling for all other predictors in the model.
+
+The partial residual plot for $X_{i}$ is a SLR between ($\epsilon_{i} + \beta_{1}X_{1}$) versus $X_{1}$ where $\epsilon_{i}$ is the residual of the full MLR model; this SLR model has the same slope ($\beta_{1}$) and residual ($\epsilon$) of the MLR. The partial residual plot allows us to easily evaluate the extent of departures from linearity. We can use the `crPlots()` function from the `car` package to create partial residual plots for all numeric predictors:
+
+```{r}
+car::crPlots(mlr_auto_lm)
+# log_lm_mod <- lm_model %>%
+#   parsnip::fit(formula = mpg ~ )
+
+```
+
+The blue dashed line represents the fitted linear relationship from our MLR model (component line) and the pink line shows the LOESS smoothed curve fitted to the partial residuals (the observed pattern). If the lines approximately follow each other, there is little visual evidence that the predictor requires transformation. If the LOESS curve systematically bends away from the linear component line, the linear specification may not adequately capture the relationship.
+
+The partial residual plots reveal that the curves diverge in the `horsepower` plot with substantial curvature. We could try a few different transformations:
+
+```{r}
+# Logarithmic model
+log_hp_mod <- lm_model %>%
+  parsnip::fit(formula = mpg ~. - horsepower + log(horsepower), data = auto_cleaned) %>%
+  parsnip::extract_fit_engine()
+
+# Square-root model
+sqrt_hp_mod <- lm_model %>%
+  parsnip::fit(formula = mpg ~. - horsepower + sqrt(horsepower), data = auto_cleaned) %>%
+  parsnip::extract_fit_engine()
+
+# Quadratic model with both linear and quadratic terms included
+quad_hp_mod <- lm_model %>%
+  parsnip::fit(formula = mpg ~. + I(horsepower^2), data = auto_cleaned) %>%
+  parsnip::extract_fit_engine()
+
+car::crPlot(log_hp_mod, variable = "log(horsepower)")
+car::crPlot(sqrt_hp_mod, variable = "sqrt(horsepower)")
+car::crPlot(quad_hp_mod, variable = "I(horsepower^2)")
+```
+
+The log-transformation of `horsepower` appears to have improved the model fit substantially, and better than if we were to use a square-root or quadratic transformation.
+
+### Question 10
 
 
 
